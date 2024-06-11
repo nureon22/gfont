@@ -182,6 +182,13 @@ def download_family(unsafe_family_name: str):
     print("Installation finish.")
 
 
+def remove_family(family):
+    family = resolve_family_name(family)
+    dir = os.path.join(fonts_dir, family.replace(" ", "_"))
+
+    if os.path.isdir(dir):
+        os.removedirs(dir)
+
 def get_installed_families():
     families = []
 
@@ -217,6 +224,8 @@ def list_command(args):
 def install_command(args):
     download_family(args.family.replace("_", " "))
 
+def remove_command(args):
+    remove_family(args.family.replace("_", " "))
 
 def main():
     argparser = argparse.ArgumentParser(
@@ -258,6 +267,13 @@ def main():
         "family", help="Name of the font family (case-insensitive)"
     )
     install_parser.set_defaults(func=install_command)
+
+    # remove sub-command
+    remove_parser = subparsers.add_parser("remove", help="remove a font family")
+    remove_parser.add_argument(
+        "family", help="Name of the font family (case-insensitive)"
+    )
+    remove_parser.set_defaults(func=remove_command)
 
     args = argparser.parse_args()
     args.func(args)
