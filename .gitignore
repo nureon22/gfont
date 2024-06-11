@@ -4,3 +4,5 @@ dist/
 lib
 lib64
 bin
+.idea
+
