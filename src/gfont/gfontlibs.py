@@ -173,10 +173,11 @@ def get_family_info(family_name: str, isRaw: bool = False) -> str:
         content = f"""
             \r\033[32m{family_metadata['family']}\033[0m
             \r------------
-            \r\033[32mCategory\033[0m  : {family_metadata['category']}
-            \r\033[32mSubsets\033[0m   : {', '.join(family_metadata['subsets'])}
-            \r\033[32mFonts\033[0m     : {', '.join(list(family_metadata['fonts'].keys()))}
-            \r\033[32mDesigners\033[0m : {', '.join(family_metadata['designers'])}
+            \r\033[32mCategory\033[0m   : {family_metadata['category']}
+            \r\033[32mSubsets\033[0m    : {', '.join(family_metadata['subsets'])}
+            \r\033[32mFonts\033[0m      : {', '.join(list(family_metadata['fonts'].keys()))}
+            \r\033[32mDesigners\033[0m  : {', '.join(family_metadata['designers'])}
+            \r\033[32mOpenSource\033[0m : {family_metadata['isOpenSource']}
         \r"""
 
     return content
