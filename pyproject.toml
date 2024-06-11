@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gfont"
 description=  "Browse and install fonts from fonts.google.com"
-version = "0.0.1"
+version = "0.0.2"
 readme = "README.md"
 keywords = ["font", "google"]
 license = { file = "LICENSE" }
