@@ -1,5 +1,5 @@
 import argparse
-from . import search_families, get_family_info, get_installed_families, download_family
+from . import search_families, get_family_info, get_installed_families, download_family, get_families_metadata
 
 
 def search_command(args):
@@ -11,13 +11,17 @@ def info_command(args):
     print(get_family_info(args.family.replace("_", " "), args.raw))
 
 
-def list_command():
-    installed_families = get_installed_families()
+def list_command(args):
+    if args.installed:
+        installed_families = get_installed_families()
 
-    if len(installed_families) == 0:
-        print("No installed font families")
+        if len(installed_families) == 0:
+            print("No installed font families")
+        else:
+            print(installed_families)
     else:
-        print(installed_families)
+        for family_metadata in get_families_metadata()["familyMetadataList"]:
+            print(family_metadata["family"])
 
 
 def install_command(args):
