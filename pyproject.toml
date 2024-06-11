@@ -1,17 +1,22 @@
-# [tool.poetry]
-
 [project]
 name = "gfont"
 version="0.0.4"
 description = "Browse and install fonts from fonts.google.com"
 readme = "README.md"
+authors = [
+    { name = "Phyo Wai Lin", email="phyowailin2004@proton.me" }
+]
 keywords = ["font", "google"]
+license = { file = "LICENSE" }
 classifiers = [
     "Environment :: Console",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Topic :: System :: Console Fonts",
     "Topic :: Text Processing :: Fonts"
+]
+dependencies = [
+    "requests"
 ]
 
 [project.scripts]
@@ -20,18 +25,10 @@ gfont = "gfont:main"
 [tool.poetry]
 name = "gfont"
 version="0.0.4"
-authors = ["Phyo Wai Lin <phyowailin2004@proton.me>"]
-description = "Browse and install fonts from fonts.google.com"
-readme = "README.md"
-keywords = ["font", "google"]
-license = "MIT"
-classifiers = [
-    "Environment :: Console",
-    "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python",
-    "Topic :: System :: Console Fonts",
-    "Topic :: Text Processing :: Fonts"
+authors = [
+    "Phyo Wai Lin <phyowailin2004@proton.me>"
 ]
+description = "Browse and install fonts from fonts.google.com"
 
 [tool.poetry.dependencies]
 python = "^3.8"
