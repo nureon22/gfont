@@ -11,6 +11,17 @@ families_metadata_file = os.path.expandvars("$HOME/.cache/gfont/families_metadat
 fonts_dir = os.path.expandvars("$HOME/.local/share/fonts/gfont")
 
 
+def ask_yes_no(question):
+    while True:
+        answer = input(f"{question} [y|N] ").upper().strip()[0]
+        if answer == "":
+            return False
+        elif answer == "N":
+            return False
+        elif answer == "Y":
+            return True
+
+
 def __family_not_found(family_name, exit=False):
     print("\033[31m'{}' not found\033[0m".format(family_name))
 

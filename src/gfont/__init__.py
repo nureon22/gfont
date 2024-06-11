@@ -26,11 +26,15 @@ def list_command(args):
 
 
 def install_command(args):
-    gfontlibs.download_family(args.family.replace("_", " "))
+    family = gfontlibs.resolve_family_name(args.family.replace("_", " "))
+    if gfontlibs.ask_yes_no(f"Installing '{family}'"):
+        gfontlibs.download_family(family)
 
 
 def remove_command(args):
-    gfontlibs.remove_family(args.family.replace("_", " "))
+    family = gfontlibs.resolve_family_name(args.family.replace("_", " "))
+    if gfontlibs.ask_yes_no(f"Installing '{family}'"):
+        gfontlibs.remove_family(family)
 
 
 def main():
