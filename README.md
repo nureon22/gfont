@@ -1,6 +1,13 @@
 # Browse and install fonts from fonts.google.com
 
-<!-- Browse and install fonts from fonts.google.com directly from your terminal -->
+## Installation
+```sh
+git clone https://github.com/nureon22/gfont.git <dir>
+cd <dir>
+sh build.sh
+pip install dist/gfont-<version>-py3-none-any.whl
+```
+**In Debian, pipx is recommended instead of pip.**
 
 ## Usages
 All commands support case-insensitive family names\
