@@ -13,4 +13,4 @@ dependencies = ["requests"]
 requires-python = ">=3.8"
 
 [project.scripts]
-gfont = "gfont.cli:main"
+gfont = "gfont"
