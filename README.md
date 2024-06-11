@@ -9,15 +9,7 @@ git clone https://github.com/nureon22/gfont.git <dir>
 
 cd <dir>
 
-python3 -m venv .
-
-. bin/activate
-
-pip install -r requirements.txt
-
-poetry install
-
-python3 -m build
+sh build.sh
 
 pip install dist/gfont-<version>-py3-none-any.whl
 ```
