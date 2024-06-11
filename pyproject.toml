@@ -1,6 +1,6 @@
 [project]
 name = "gfont"
-version="0.0.4"
+version="0.0.5"
 description = "Browse and install fonts from fonts.google.com"
 readme = "README.md"
 authors = [
@@ -24,7 +24,7 @@ gfont = "gfont:main"
 
 [tool.poetry]
 name = "gfont"
-version="0.0.4"
+version="0.0.5"
 authors = [
     "Phyo Wai Lin <phyowailin2004@proton.me>"
 ]
