@@ -29,7 +29,7 @@ def __family_not_found(family_name, exit=False):
         sys.exit(1)
 
 
-def __download_families_metadata():
+def download_families_metadata():
     res = requests.get(url="https://fonts.google.com/metadata/fonts")
 
     if res.status_code != 200:
@@ -42,7 +42,7 @@ def __download_families_metadata():
         file.write(res.text)
 
 
-def __get_family_fonts(family: str):
+def get_family_fonts(family: str):
     res = requests.get(f"https://fonts.google.com/download/list?family={family}")
 
     if res.status_code != 200:
@@ -54,7 +54,7 @@ def __get_family_fonts(family: str):
     return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
 
-def __download_font(font: dict, filepath: str, retries=5):
+def download_font(font: dict, filepath: str, retries=5):
     print(f"Downloading {font['filename']}")
 
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -70,7 +70,7 @@ def __download_font(font: dict, filepath: str, retries=5):
         content = res.content
     except Exception as ex:
         if retries:
-            return __download_font(font, filepath, retries - 1)
+            return download_font(font, filepath, retries - 1)
         else:
             print(f"\033[31mFailed {font['filename']}\033[0m")
             logging.error(ex)
@@ -88,9 +88,9 @@ def get_families_metadata():
 
         # if fonts_metadata_file is older than 24 hours, download again.
         if age > 3600 * 24:
-            __download_families_metadata()
+            download_families_metadata()
     else:
-        __download_families_metadata()
+        download_families_metadata()
 
     return json.loads(open(families_metadata_file, "r").read())
 
@@ -171,7 +171,7 @@ def download_family(unsafe_family_name: str):
 
     print("Downloading '{}'".format(family))
 
-    family_fonts = __get_family_fonts(family)
+    family_fonts = get_family_fonts(family)
     manifest_files = family_fonts["manifest"]["files"]
     font_files = family_fonts["manifest"]["fileRefs"]
 
@@ -183,7 +183,7 @@ def download_family(unsafe_family_name: str):
             file.write(manifest["contents"])
 
     for font in font_files:
-        if __download_font(font, os.path.join(dir, font["filename"])):
+        if download_font(font, os.path.join(dir, font["filename"])):
             successed.append(font)
         else:
             failed.append(font)
@@ -192,7 +192,7 @@ def download_family(unsafe_family_name: str):
         print("\nRetrying failed downloads")
 
         for font in failed:
-            __download_font(font, os.path.join(dir, font["filename"]))
+            download_font(font, os.path.join(dir, font["filename"]))
 
     os.system("fc-cache")
 
