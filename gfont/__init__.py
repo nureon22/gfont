@@ -194,7 +194,8 @@ def get_installed_families():
 
     for dir in os.listdir(fonts_dir) if os.path.isdir(fonts_dir) else []:
         if not dir.startswith("."):
-            families.append(dir)
+            family = dir.replace("_", " ")
+            families.append(family)
 
     return families
 
