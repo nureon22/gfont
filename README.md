@@ -17,8 +17,6 @@ pip install -r requirements.txt
 
 poetry install
 
-pre-commit install
-
 python3 -m build
 
 pip install dist/gfont-<version>-py3-none-any.whl
