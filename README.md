@@ -8,11 +8,11 @@ cd <dir>
 
 python3 -m venv .
 
-sh bin/activate
+. bin/activate
 
 pip install -r requirements.txt
 
-python -m build
+python3 -m build
 
 pip install dist/gfont-<version>-py3-none-any.whl
 ```
