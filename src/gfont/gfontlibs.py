@@ -94,19 +94,19 @@ def search_families(keywords: list[str], exact: bool = False):
     for family_metadata in family_metadata_list:
         family = family_metadata["family"].lower()
 
-        is_found = False
+        not_found = False
 
         for keyword in keywords:
             keyword = keyword.replace("  ", "").strip().lower()
 
             if exact:
-                if family == keyword:
-                    is_found = True
+                if family != keyword:
+                    not_found = True
             else:
-                if family.find(keyword) == 0:
-                    is_found = True
+                if family.find(keyword) == -1:
+                    not_found = True
 
-        if is_found:
+        if not not_found:
             results.append(family_metadata)
 
     return results
