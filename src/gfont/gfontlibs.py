@@ -30,6 +30,8 @@ def __family_not_found(family_name, exit=False):
 
 
 def download_families_metadata():
+    "Download metadata of all available font families to specified filepath"
+
     res = requests.get(url="https://fonts.google.com/metadata/fonts")
 
     if res.status_code != 200:
@@ -43,6 +45,8 @@ def download_families_metadata():
 
 
 def get_family_fonts(family: str):
+    "Get list of files (including manifest files) contains in a font family"
+
     res = requests.get(f"https://fonts.google.com/download/list?family={family}")
 
     if res.status_code != 200:
@@ -55,6 +59,12 @@ def get_family_fonts(family: str):
 
 
 def download_font(font: dict, filepath: str, retries=5):
+    """Download the given font, not complete set of font family.
+
+    :param font: dictionary that hold information of a font, much contains 'filename' and 'url' properties.
+    :param retries: number of retries if downloading the font failed
+    """
+
     print(f"Downloading {font['filename']}")
 
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -82,7 +92,9 @@ def download_font(font: dict, filepath: str, retries=5):
     return True
 
 
-def get_families_metadata():
+def get_families_metadata() -> dict:
+    """Get metadata of all available font families"""
+
     if os.path.isfile(families_metadata_file):
         age = time.time() - os.stat(families_metadata_file).st_mtime
 
@@ -95,7 +107,12 @@ def get_families_metadata():
     return json.loads(open(families_metadata_file, "r").read())
 
 
-def search_families(keywords: list[str], exact: bool = False):
+def search_families(keywords: list[str], exact: bool = False) -> list[dict]:
+    """Search font families contain given keywords.
+
+    :param exact: if True, given keywords will be directly compare to name of the font family. But still case-insensitive.
+    """
+
     families_metadata = get_families_metadata()
     family_metadata_list = families_metadata["familyMetadataList"]
 
@@ -123,6 +140,8 @@ def search_families(keywords: list[str], exact: bool = False):
 
 
 def get_family_metadata(family_name: str) -> dict:
+    """Get metadata of a specific font family"""
+
     families = search_families([family_name], True)
 
     if len(families) == 0:
@@ -135,7 +154,12 @@ def resolve_family_name(family_name: str):
     return get_family_metadata(family_name)["family"]
 
 
-def get_family_info(family_name: str, isRaw: bool = False):
+def get_family_info(family_name: str, isRaw: bool = False) -> str:
+    """Get metadata of a specific font family in pretty print format
+
+    :param isRaw: if True, return is raw json format (contains extra informations)
+    """
+
     family_metadata = get_family_metadata(family_name)
 
     if family_metadata is None:
@@ -159,6 +183,8 @@ def get_family_info(family_name: str, isRaw: bool = False):
 
 
 def download_family(unsafe_family_name: str):
+    """Download complete set of given font family"""
+
     family_metadata = get_family_metadata(unsafe_family_name)
 
     if family_metadata is None:
@@ -201,6 +227,8 @@ def download_family(unsafe_family_name: str):
 
 
 def remove_family(family):
+    """Remove already installed font family. If given font family wasn't installed yet, do nothing."""
+
     family = resolve_family_name(family)
     dir = os.path.join(fonts_dir, family.replace(" ", "_"))
 
@@ -209,7 +237,9 @@ def remove_family(family):
         os.system("fc-cache")
 
 
-def get_installed_families():
+def get_installed_families() -> list[str]:
+    """Get installed font families"""
+
     families = []
 
     for dir in os.listdir(fonts_dir) if os.path.isdir(fonts_dir) else []:
