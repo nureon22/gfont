@@ -3,14 +3,11 @@
 ⚠️ **Warning: this project is still in development**
 
 ## Installation
+
 ```sh
 git clone https://github.com/nureon22/gfont.git <dir>
 
 cd <dir>
-
-poetry install
-
-pre-commit install
 
 python3 -m venv .
 
@@ -18,47 +15,59 @@ python3 -m venv .
 
 pip install -r requirements.txt
 
+poetry install
+
+pre-commit install
+
 python3 -m build
 
 pip install dist/gfont-<version>-py3-none-any.whl
 ```
+
 **In Debian, pipx is recommended instead of pip.**
 
 ## Usages
+
 All commands support case-insensitive family names\
-You can also use underscore (_) instead of space character
+You can also use underscore (\_) instead of space character
 
 ### search a font family
+
 ```sh
 gfont search "Noto Sans"
 ```
 
 ### Install a font family
+
 ```sh
 gfont install "Noto Sans"
 ```
 
 ### List font families
+
 ```sh
 gfont list
 ```
 
 ### List only installed font families
+
 ```sh
 gfont list --installed
 ```
 
 ### view information of a font family
+
 ```sh
 gfont info "Noto Sans"
 ```
 
 ### view information of a font family in raw json format
+
 This will show all the information
+
 ```sh
 gfont info --raw "Noto Sans"
 ```
-
 
 ### Files Places
 
