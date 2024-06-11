@@ -62,7 +62,7 @@ def __download_font(font: dict, filepath: str, retries=5):
         if retries:
             return __download_font(font, filepath, retries - 1)
         else:
-            logging.info(f"\033[31mFailed {font['filename']}\033[0m")
+            print(f"\033[31mFailed {font['filename']}\033[0m")
             logging.error(ex)
             return False
 
