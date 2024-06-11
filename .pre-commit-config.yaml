@@ -1,0 +1,37 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: check-yaml
+    -   id: check-added-large-files
+        args: ['--maxkb=10240']
+    -   id: check-merge-conflict
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+
+# isort -- sorts imports
+-   repo: https://github.com/timothycrosley/isort
+    rev: 5.13.2
+    hooks:
+    -   id: isort
+        args: ["--profile", "black", "--filter-files"]
+
+# Flake8
+-   repo: https://github.com/pycqa/flake8
+    rev: '7.0.0'
+    hooks:
+    -   id: flake8
+
+# Black
+# Using this mirror lets us use mypyc-compiled black, which is about 2x faster
+- repo: https://github.com/psf/black-pre-commit-mirror
+  rev: 24.2.0
+  hooks:
+    - id: black
+      language_version: python3.8
+
+# Poetry
+- repo: https://github.com/python-poetry/poetry
+  rev: 1.8.2
+  hooks:
+  - id: poetry-lock
