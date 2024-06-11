@@ -11,6 +11,13 @@ keywords = ["font", "google"]
 license = { file = "LICENSE" }
 dependencies = ["requests"]
 requires-python = ">=3.8"
+classifiers = [
+    "Environment :: Console",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Topic :: System :: Console Fonts",
+    "Topic :: Text Processing :: Fonts",
+]
 
 [project.scripts]
 gfont = "gfont:main"
