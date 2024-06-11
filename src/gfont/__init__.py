@@ -77,4 +77,6 @@ def main():
     remove_parser.set_defaults(func=remove_command)
 
     args = argparser.parse_args()
-    args.func(args)
+
+    if "func" in args:
+        args.func(args)
