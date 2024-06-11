@@ -43,6 +43,12 @@ gfont search "Noto Sans"
 gfont install "Noto Sans"
 ```
 
+### Remove a installed font family
+
+```sh
+gfont remove "Noto Sans"
+```
+
 ### List font families
 
 ```sh
