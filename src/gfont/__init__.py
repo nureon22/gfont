@@ -4,8 +4,13 @@ from . import gfontlibs
 
 
 def search_command(args):
+    installed_families = gfontlibs.get_installed_families()
+
     for family in gfontlibs.search_families(args.keywords):
-        print("\033[94m{}\033[0m".format(family["family"]))
+        if family["family"] in installed_families:
+            print(f"\033[34m{family['family']}\033[0m [installed]")
+        else:
+            print(f"\033[34m{family['family']}\033[0m")
 
 
 def info_command(args):
@@ -13,17 +18,20 @@ def info_command(args):
 
 
 def list_command(args):
-    if args.installed:
-        installed_families = gfontlibs.get_installed_families()
+    installed_families = gfontlibs.get_installed_families()
 
+    if args.installed:
         if len(installed_families) == 0:
             print("No installed font families")
         else:
             for family in installed_families:
-                print(family)
+                print(f"\033[34m{family}\033[0m")
     else:
         for family_metadata in gfontlibs.get_families_metadata()["familyMetadataList"]:
-            print(family_metadata["family"])
+            if family_metadata["family"] in installed_families:
+                print(f"\033[34m{family_metadata['family']}\033[0m [installed]")
+            else:
+                print(f"\033[34m{family_metadata['family']}\033[0m")
 
 
 def install_command(args):
