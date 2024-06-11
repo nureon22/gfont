@@ -19,7 +19,8 @@ def list_command(args):
         if len(installed_families) == 0:
             print("No installed font families")
         else:
-            print(installed_families)
+            for family in installed_families:
+                print(family)
     else:
         for family_metadata in gfontlibs.get_families_metadata()["familyMetadataList"]:
             print(family_metadata["family"])
