@@ -17,10 +17,10 @@ repos:
         args: ["--profile", "black", "--filter-files"]
 
 # Flake8
-#-   repo: https://github.com/pycqa/flake8
-#    rev: '7.0.0'
-#    hooks:
-#    -   id: flake8
+-   repo: https://github.com/pycqa/flake8
+    rev: '7.0.0'
+    hooks:
+    -   id: flake8
 
 # Black
 # Using this mirror lets us use mypyc-compiled black, which is about 2x faster
