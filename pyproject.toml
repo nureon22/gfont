@@ -14,3 +14,6 @@ requires-python = ">=3.8"
 
 [project.scripts]
 gfont = "gfont:main"
+
+[tool.setuptools]
+packages = ["gfont"]
