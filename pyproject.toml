@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "gfont"
 authors = [
-    "Phyo WÃ¡i Lin <email@email.net>"
+    "Phyo Wai Lin <email@email.net>"
 ]
 description = "Browse and install fonts from fonts.google.com"
 version = "0.0.4"

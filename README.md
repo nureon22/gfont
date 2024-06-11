@@ -8,6 +8,8 @@ git clone https://github.com/nureon22/gfont.git <dir>
 
 cd <dir>
 
+poetry install
+
 pre-commit install
 
 python3 -m venv .
