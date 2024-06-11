@@ -1,8 +1,6 @@
 [tool.poetry]
 name = "gfont"
-authors = [
-    "Phyo Wai Lin <email@email.net>"
-]
+authors = ["Phyo Wai Lin <email@email.net>"]
 description = "Browse and install fonts from fonts.google.com"
 version = "0.0.4"
 readme = "README.md"
@@ -13,31 +11,28 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
     "Topic :: System :: Console Fonts",
-    "Topic :: Text Processing :: Fonts",
+    "Topic :: Text Processing :: Fonts"
 ]
 
-[project.scripts]
+[tool.poetry.scripts]
 gfont = "gfont:main"
 
-[tool.setuptools]
-packages = ["gfont"]
-
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
 [tool.poetry.dependencies]
-requests = "*"
 python = "^3.8"
+requests = "*"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
 pre-commit = "*"
 isort = "*"
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 line-length = 120
-target-version = ['py38']
+target-version = ["py38"]
 
 [tool.isort]
 multi_line_output = 3
