@@ -1,4 +1,3 @@
-import argparse
 import json
 import logging
 import os
@@ -184,6 +183,8 @@ def download_family(unsafe_family_name: str):
         for font in failed:
             __download_font(font, os.path.join(dir, font["filename"]))
 
+    os.system("fc-cache")
+
     print("Success {}. Failed {}.".format(len(successed), len(failed)))
     print("Installation finish.")
 
@@ -194,6 +195,7 @@ def remove_family(family):
 
     if os.path.isdir(dir):
         os.removedirs(dir)
+        os.system("fc-cache")
 
 
 def get_installed_families():
