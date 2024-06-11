@@ -1,4 +1,10 @@
-import sys, os, requests, json, time, argparse
+import argparse
+import json
+import os
+import sys
+import time
+
+import requests
 
 # fonts_metadata.json will be refreshed every 24 hours
 families_metadata_file = os.path.expandvars("$HOME/.cache/gfont/families_metadata.json")
@@ -29,9 +35,7 @@ def __get_family_fonts(family: str):
     res = requests.get(f"https://fonts.google.com/download/list?family={family}")
 
     if res.status_code != 200:
-        raise Exception(
-            f"Downloading {res.url} failed with status code {res.status_code}"
-        )
+        raise Exception(f"Downloading {res.url} failed with status code {res.status_code}")
 
     # https://fonts.google.com/download/list?family={family} return )]}' at the
     # beginning of the response. I don't know why. But this will make json parser
@@ -189,6 +193,7 @@ def remove_family(family):
     if os.path.isdir(dir):
         os.removedirs(dir)
 
+
 def get_installed_families():
     families = []
 
@@ -225,8 +230,10 @@ def list_command(args):
 def install_command(args):
     download_family(args.family.replace("_", " "))
 
+
 def remove_command(args):
     remove_family(args.family.replace("_", " "))
+
 
 def main():
     argparser = argparse.ArgumentParser(
@@ -237,9 +244,7 @@ def main():
     subparsers = argparser.add_subparsers(title="commands")
 
     # search sub-command
-    search_parser = subparsers.add_parser(
-        "search", help="search available font families"
-    )
+    search_parser = subparsers.add_parser("search", help="search available font families")
     search_parser.add_argument(
         "keywords",
         nargs="+",
@@ -248,12 +253,8 @@ def main():
     search_parser.set_defaults(func=search_command)
 
     # info sub-command
-    info_parser = subparsers.add_parser(
-        "info", help="show informations of a font family"
-    )
-    info_parser.add_argument(
-        "--raw", action="store_true", help="print information in raw json format"
-    )
+    info_parser = subparsers.add_parser("info", help="show informations of a font family")
+    info_parser.add_argument("--raw", action="store_true", help="print information in raw json format")
     info_parser.add_argument("family", help="Name of font family (case-insensitive)")
     info_parser.set_defaults(func=info_command)
 
@@ -264,16 +265,12 @@ def main():
 
     # install sub-command
     install_parser = subparsers.add_parser("install", help="install a font family")
-    install_parser.add_argument(
-        "family", help="Name of the font family (case-insensitive)"
-    )
+    install_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     install_parser.set_defaults(func=install_command)
 
     # remove sub-command
     remove_parser = subparsers.add_parser("remove", help="remove a font family")
-    remove_parser.add_argument(
-        "family", help="Name of the font family (case-insensitive)"
-    )
+    remove_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     remove_parser.set_defaults(func=remove_command)
 
     args = argparser.parse_args()

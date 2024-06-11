@@ -8,6 +8,8 @@ git clone https://github.com/nureon22/gfont.git <dir>
 
 cd <dir>
 
+pre-commit install
+
 python3 -m venv .
 
 . bin/activate
@@ -50,7 +52,7 @@ gfont info "Noto Sans"
 ```
 
 ### view information of a font family in raw json format
-This will show all the informations
+This will show all the information
 ```sh
 gfont info --raw "Noto Sans"
 ```
