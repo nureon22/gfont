@@ -67,7 +67,6 @@ def main():
     argparser = argparse.ArgumentParser(
         prog="gfont",
         description="Browse and download fonts from fonts.google.com",
-        exit_on_error=True,
     )
     subparsers = argparser.add_subparsers(title="commands")
 
