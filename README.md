@@ -29,6 +29,23 @@ pip install dist/gfont-<version>-py3-none-any.whl
 * imagemagick (optional) - Require to preview the font
 
 
+#### Installing poetry in different Linux distributions
+
+Debian based distributions\
+```sh
+sudo apt install python3-poetry
+```
+
+Fedora based distributions\
+```sh
+sudo dnf install poetry
+```
+
+Arch based distributions\
+```sh
+sudo pacman -Sy python-poetry
+```
+
 ## Usages
 
 All commands support case-insensitive family names\
