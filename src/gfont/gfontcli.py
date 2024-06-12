@@ -15,7 +15,7 @@ def search_command(args):
 
 def info_command(args):
     if args.license:
-        print(gfontlibs.get_license_content(args.family.replace("_", " ")))
+        print(gfontlibs.get_license_content(gfontlibs.resolve_family_name(args.family.replace("_", " "))))
     else:
         print(gfontlibs.get_family_info(args.family.replace("_", " "), args.raw))
 
