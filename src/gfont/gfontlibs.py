@@ -6,7 +6,8 @@ import sys
 import time
 
 import requests
-from licensenames import LICENSE_NAMES
+
+from . import licensenames
 
 # fonts_metadata.json will be refreshed every 24 hours
 families_metadata_file = os.path.expandvars("$HOME/.cache/gfont/families_metadata.json")
@@ -275,7 +276,7 @@ def get_license_names(license_content: str) -> list[str]:
 
     result = []
 
-    for license_name in LICENSE_NAMES:
+    for license_name in licensenames.LICENSE_NAMES:
         if license_name in license_content:
             result.append(license_name)
 
