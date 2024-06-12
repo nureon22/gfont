@@ -31,17 +31,17 @@ pip install dist/gfont-<version>-py3-none-any.whl
 
 #### Installing poetry in different Linux distributions
 
-Debian based distributions\
+Debian based distributions
 ```sh
 sudo apt install python3-poetry
 ```
 
-Fedora based distributions\
+Fedora based distributions
 ```sh
 sudo dnf install poetry
 ```
 
-Arch based distributions\
+Arch based distributions
 ```sh
 sudo pacman -Sy python-poetry
 ```
