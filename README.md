@@ -34,10 +34,23 @@ pip install dist/gfont-<version>-py3-none-any.whl
 All commands support case-insensitive family names\
 You can also use underscore (\_) instead of space character
 
-### search a font family
+### Search font families
 
 ```sh
 gfont search "Noto Sans"
+```
+
+### Veiw information of a font family
+
+```sh
+gfont info "Noto Sans"
+```
+
+### View information of a font family in raw json format
+This will show all the information
+
+```sh
+gfont info --raw "Noto Sans"
 ```
 
 ### Install a font family
@@ -52,7 +65,14 @@ gfont install "Noto Sans"
 gfont remove "Noto Sans"
 ```
 
-### List font families
+### Preview a font family
+
+**Please install imagemagick first**
+```sh
+gfont preview "Noto Sans"
+```
+
+### List all available font families
 
 ```sh
 gfont list
@@ -64,24 +84,13 @@ gfont list
 gfont list --installed
 ```
 
-### view information of a font family
-
-```sh
-gfont info "Noto Sans"
-```
-
-### view information of a font family in raw json format
-
-This will show all the information
-
-```sh
-gfont info --raw "Noto Sans"
-```
-
-### Files Places
+### Related files and directories
 
 Metadata of all available families. This file will be refreshed every 24 hours.\
 `$HOME/.cache/gfont/families_metadata.json`
+
+Image of last previewed font family\
+`$HOME/.cache/gfont/preview.png`
 
 Directory for installed fonts\
 `$HOME/.local/share/fonts/gfont`
