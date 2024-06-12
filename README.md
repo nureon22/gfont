@@ -9,11 +9,13 @@ git clone https://github.com/nureon22/gfont.git <dir>
 
 cd <dir>
 
+python3 -m venv .
+
+. bin/activate
+
+pip install poetry
+
 poetry install
-
-poetry build
-
-pip install dist/gfont-<version>-py3-none-any.whl
 ```
 
 **In Debian, pipx is recommended instead of pip.**
@@ -27,24 +29,6 @@ pip install dist/gfont-<version>-py3-none-any.whl
 
 * requests
 * imagemagick (optional) - Require to preview the font
-
-
-#### Installing poetry in different Linux distributions
-
-Debian based distributions
-```sh
-sudo apt install python3-poetry
-```
-
-Fedora based distributions
-```sh
-sudo dnf install poetry
-```
-
-Arch based distributions
-```sh
-sudo pacman -Sy python-poetry
-```
 
 ## Usages
 
