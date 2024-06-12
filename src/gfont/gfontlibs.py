@@ -260,6 +260,8 @@ def preview_font(font: dict, preview_text: str | None = None, font_size: int = 4
     if not preview_text:
         preview_text = "Whereas disregard and contempt\nfor human rights have resulted "
 
+    preview_text = split_long_text(preview_text, 8)
+
     if shutil.which("convert") and shutil.which("display"):
         fontfile = os.path.expandvars(f"$HOME/.cache/gfont/{font['filename']}")
         imagefile = os.path.expandvars("$HOME/.cache/gfont/preview.png")
@@ -274,3 +276,18 @@ def preview_font(font: dict, preview_text: str | None = None, font_size: int = 4
         os.remove(fontfile)
     else:
         print("\033[31mError: Cannot preview the font, imagemagick didn't installed\033[0m")
+
+
+def split_long_text(text: str, max_words_count: int) -> str:
+    """
+    Add line break at every {max_words_count} words
+    """
+
+    result = ""
+
+    words = text.split(" ")
+    for index in range(0, len(words), max_words_count):
+        end = index + max_words_count
+        result = result + " ".join(words[index:end]) + "\n"
+
+    return result
