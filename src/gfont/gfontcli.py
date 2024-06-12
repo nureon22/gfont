@@ -39,13 +39,13 @@ def list_command(args):
 
 def install_command(args):
     family = gfontlibs.resolve_family_name(args.family.replace("_", " "))
-    if gfontlibs.ask_yes_no(f"Installing '{family}'"):
+    if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no(f"Installing '{family}'"):
         gfontlibs.download_family(family)
 
 
 def remove_command(args):
     family = gfontlibs.resolve_family_name(args.family.replace("_", " "))
-    if gfontlibs.ask_yes_no(f"Installing '{family}'"):
+    if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no(f"Installing '{family}'"):
         gfontlibs.remove_family(family)
 
 
@@ -93,11 +93,17 @@ def main():
 
     # install sub-command
     install_parser = subparsers.add_parser("install", help="install a font family")
+    install_parser.add_argument(
+        "-y", "--yes", action="store_true", help="Assume 'yes' as answer to all prompts and run non-interactively."
+    )
     install_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     install_parser.set_defaults(func=install_command)
 
     # remove sub-command
     remove_parser = subparsers.add_parser("remove", help="remove a font family")
+    remove_parser.add_argument(
+        "-y", "--yes", action="store_true", help="Assume 'yes' as answer to all prompts and run non-interactively."
+    )
     remove_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     remove_parser.set_defaults(func=remove_command)
 
@@ -108,6 +114,9 @@ def main():
     preview_parser.set_defaults(func=preview_command)
 
     args = argparser.parse_args()
+
+    if "yes" in args and args.yes:
+        gfontlibs.IS_ASSUME_YES = True
 
     if "func" in args:
         args.func(args)
