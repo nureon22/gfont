@@ -18,6 +18,17 @@ pip install dist/gfont-<version>-py3-none-any.whl
 
 **In Debian, pipx is recommended instead of pip.**
 
+### Requirements
+#### Development Dependencies
+
+* poetry
+
+#### Runtime Dependencies
+
+* requests
+* imagemagick (optional) - Require to preview the font
+
+
 ## Usages
 
 All commands support case-insensitive family names\
