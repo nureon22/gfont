@@ -7,8 +7,6 @@ import time
 
 import requests
 
-from . import licensenames
-
 # fonts_metadata.json will be refreshed every 24 hours
 families_metadata_file = os.path.expandvars("$HOME/.cache/gfont/families_metadata.json")
 fonts_dir = os.path.expandvars("$HOME/.local/share/fonts/gfont")
@@ -173,7 +171,6 @@ def get_family_info(family_name, isRaw=False):
     if isRaw:
         content = json.dumps(family_metadata, indent=2)
     else:
-        licenses = get_license_names(get_license_content(family_metadata["family"]))
         content = f"""
             \r\033[32m{family_metadata['family']}\033[0m
             \r------------
@@ -181,7 +178,6 @@ def get_family_info(family_name, isRaw=False):
             \r\033[32mSubsets\033[0m    : {', '.join(family_metadata['subsets'])}
             \r\033[32mFonts\033[0m      : {', '.join(list(family_metadata['fonts'].keys()))}
             \r\033[32mDesigners\033[0m  : {', '.join(family_metadata['designers'])}
-            \r\033[32mLicenses\033[0m   : {", ".join(licenses)}
             \r\033[32mOpenSource\033[0m : {family_metadata['isOpenSource']}
         \r"""
 
@@ -267,20 +263,6 @@ def get_license_content(family):
             return manifest["contents"]
 
     return "License not found"
-
-
-def get_license_names(license_content):
-    """
-    Get a list of license names found in provided {license_content}
-    """
-
-    result = []
-
-    for license_name in licensenames.LICENSE_NAMES:
-        if license_name in license_content:
-            result.append(license_name)
-
-    return result
 
 
 def preview_font(font, preview_text=None, font_size=48):
