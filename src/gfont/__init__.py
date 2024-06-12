@@ -58,7 +58,7 @@ def preview_command(args):
             regular_font = font
 
     if regular_font:
-        gfontlibs.preview_font(regular_font)
+        gfontlibs.preview_font(regular_font, args.text if args.text else None)
 
 
 def main():
@@ -101,6 +101,7 @@ def main():
 
     # preview sub-command
     preview_parser = subparsers.add_parser("preview", help="preview a font family")
+    preview_parser.add_argument("--text", help="Write any preview text you want")
     preview_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     preview_parser.set_defaults(func=preview_command)
 
