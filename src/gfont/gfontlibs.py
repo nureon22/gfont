@@ -47,7 +47,7 @@ def download_families_metadata():
         file.write(res.text)
 
 
-def get_family_fonts(family: str):
+def get_family_fonts(family):
     "Get list of files (including manifest files) contains in a font family"
 
     res = requests.get(f"https://fonts.google.com/download/list?family={family}")
@@ -61,7 +61,7 @@ def get_family_fonts(family: str):
     return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
 
-def download_font(font: dict, filepath: str, retries=5):
+def download_font(font, filepath, retries=5):
     """Download the given font, not complete set of font family.
 
     :param font: dictionary that hold information of a font, much contains 'filename' and 'url' properties.
@@ -72,7 +72,7 @@ def download_font(font: dict, filepath: str, retries=5):
 
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-    content: bytes
+    content = None
 
     try:
         res = requests.get(font["url"], timeout=5)
@@ -95,7 +95,7 @@ def download_font(font: dict, filepath: str, retries=5):
     return True
 
 
-def get_families_metadata() -> dict:
+def get_families_metadata():
     """Get metadata of all available font families"""
 
     if os.path.isfile(families_metadata_file):
@@ -110,7 +110,7 @@ def get_families_metadata() -> dict:
     return json.loads(open(families_metadata_file, "r").read())
 
 
-def search_families(keywords: list[str], exact: bool = False) -> list[dict]:
+def search_families(keywords, exact=False):
     """Search font families contain given keywords.
 
     :param exact: if True, given keywords will be directly compare to name of the font family. But still case-insensitive.
@@ -142,7 +142,7 @@ def search_families(keywords: list[str], exact: bool = False) -> list[dict]:
     return results
 
 
-def get_family_metadata(family_name: str) -> dict:
+def get_family_metadata(family_name):
     """Get metadata of a specific font family"""
 
     families = search_families([family_name], True)
@@ -153,11 +153,11 @@ def get_family_metadata(family_name: str) -> dict:
     return families[0]
 
 
-def resolve_family_name(family_name: str):
+def resolve_family_name(family_name):
     return get_family_metadata(family_name)["family"]
 
 
-def get_family_info(family_name: str, isRaw: bool = False) -> str:
+def get_family_info(family_name, isRaw=False):
     """Get metadata of a specific font family in pretty print format
 
     :param isRaw: if True, return is raw json format (contains extra informations)
@@ -188,7 +188,7 @@ def get_family_info(family_name: str, isRaw: bool = False) -> str:
     return content
 
 
-def download_family(unsafe_family_name: str):
+def download_family(unsafe_family_name):
     """Download complete set of given font family"""
 
     family_metadata = get_family_metadata(unsafe_family_name)
@@ -243,7 +243,7 @@ def remove_family(family):
         os.system("fc-cache")
 
 
-def get_installed_families() -> list[str]:
+def get_installed_families():
     """Get installed font families"""
 
     families = []
@@ -256,7 +256,7 @@ def get_installed_families() -> list[str]:
     return families
 
 
-def get_license_content(family: str) -> str:
+def get_license_content(family):
     """
     Get license of a font family. Not just license name, including its contents.
     """
@@ -269,7 +269,7 @@ def get_license_content(family: str) -> str:
     return "License not found"
 
 
-def get_license_names(license_content: str) -> list[str]:
+def get_license_names(license_content):
     """
     Get a list of license names found in provided {license_content}
     """
@@ -283,7 +283,7 @@ def get_license_names(license_content: str) -> list[str]:
     return result
 
 
-def preview_font(font: dict, preview_text: str | None = None, font_size: int = 48):
+def preview_font(font, preview_text=None, font_size=48):
     """
     Preview the given font using imagemagick
     """
@@ -309,7 +309,7 @@ def preview_font(font: dict, preview_text: str | None = None, font_size: int = 4
         print("\033[31mError: Cannot preview the font, imagemagick didn't installed\033[0m")
 
 
-def split_long_text(text: str, max_words_count: int) -> str:
+def split_long_text(text, max_words_count):
     """
     Add line break at every {max_words_count} words
     """
