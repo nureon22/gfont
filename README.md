@@ -21,6 +21,9 @@ poetry install
 **In Debian, pipx is recommended instead of pip.**
 
 ### Requirements
+
+python 3.8 or newer
+
 #### Development Dependencies
 
 * poetry
