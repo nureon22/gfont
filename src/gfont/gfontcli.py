@@ -109,3 +109,7 @@ def main():
 
     if "func" in args:
         args.func(args)
+
+
+if __name__ == "__main__":
+    main()
