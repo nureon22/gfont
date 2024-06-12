@@ -1,4 +1,4 @@
-from gfont import main
+from .gfontcli import main
 
 if __name__ == "__main__":
     main()
