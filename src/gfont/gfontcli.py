@@ -14,7 +14,10 @@ def search_command(args):
 
 
 def info_command(args):
-    print(gfontlibs.get_family_info(args.family.replace("_", " "), args.raw))
+    if args.license:
+        print(gfontlibs.get_license_content(args.family.replace("_", " ")))
+    else:
+        print(gfontlibs.get_family_info(args.family.replace("_", " "), args.raw))
 
 
 def list_command(args):
@@ -79,6 +82,7 @@ def main():
 
     # info sub-command
     info_parser = subparsers.add_parser("info", help="show informations of a font family")
+    info_parser.add_argument("--license", action="store_true", help="print license contents of a font family")
     info_parser.add_argument("--raw", action="store_true", help="print information in raw json format")
     info_parser.add_argument("family", help="Name of font family (case-insensitive)")
     info_parser.set_defaults(func=info_command)
