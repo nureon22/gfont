@@ -243,7 +243,7 @@ def download_family(unsafe_family_name):
 
         if status == "success":
             successed.append(font)
-        if status == "cached":
+        elif status == "cached":
             cached.append(font)
         else:
             failed.append(font)
