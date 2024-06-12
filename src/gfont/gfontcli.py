@@ -1,6 +1,6 @@
 import argparse
 
-import gfontlibs
+from . import gfontlibs
 
 
 def search_command(args):

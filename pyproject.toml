@@ -1,5 +1,5 @@
 [tool.poetry.scripts]
-gfont = "gfont:main"
+gfont = "gfont.gfontcli:main"
 
 [tool.poetry]
 name = "gfont"
