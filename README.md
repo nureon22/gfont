@@ -9,7 +9,9 @@ git clone https://github.com/nureon22/gfont.git <dir>
 
 cd <dir>
 
-sh build.sh
+poetry install
+
+poetry build
 
 pip install dist/gfont-<version>-py3-none-any.whl
 ```
