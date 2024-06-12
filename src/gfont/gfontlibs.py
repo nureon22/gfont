@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import shutil
 import sys
 import time
 
@@ -249,3 +250,27 @@ def get_installed_families() -> list[str]:
             families.append(family)
 
     return families
+
+
+def preview_font(font: dict, preview_text: str | None = None, font_size: int = 48):
+    """
+    Preview the given font using imagemagick
+    """
+
+    if not preview_text:
+        preview_text = "Whereas disregard and contempt\nfor human rights have resulted "
+
+    if shutil.which("convert") and shutil.which("display"):
+        fontfile = os.path.expandvars(f"$HOME/.cache/gfont/{font['filename']}")
+        imagefile = os.path.expandvars("$HOME/.cache/gfont/preview.png")
+
+        download_font(font, fontfile)
+
+        os.system(
+            f'convert -background "#101010" -fill "#ffffff" -font "{fontfile}" -pointsize {font_size} label:"{preview_text}" {imagefile}'
+        )
+        os.system(f"display {imagefile}")
+
+        os.remove(fontfile)
+    else:
+        print("\033[31mError: Cannot preview the font, imagemagick didn't installed\033[0m")

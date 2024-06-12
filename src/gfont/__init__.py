@@ -1,4 +1,5 @@
 import argparse
+import json
 
 from . import gfontlibs
 
@@ -46,6 +47,20 @@ def remove_command(args):
         gfontlibs.remove_family(family)
 
 
+def preview_command(args):
+    family = gfontlibs.resolve_family_name(args.family.replace("_", " "))
+    fonts = gfontlibs.get_family_fonts(family)["manifest"]["fileRefs"]
+
+    regular_font: dict | None = None
+
+    for font in fonts:
+        if "Regular" in font["filename"]:
+            regular_font = font
+
+    if regular_font:
+        gfontlibs.preview_font(regular_font)
+
+
 def main():
     argparser = argparse.ArgumentParser(
         prog="gfont",
@@ -83,6 +98,11 @@ def main():
     remove_parser = subparsers.add_parser("remove", help="remove a font family")
     remove_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     remove_parser.set_defaults(func=remove_command)
+
+    # preview sub-command
+    preview_parser = subparsers.add_parser("preview", help="preview a font family")
+    preview_parser.add_argument("family", help="Name of the font family (case-insensitive)")
+    preview_parser.set_defaults(func=preview_command)
 
     args = argparser.parse_args()
 
