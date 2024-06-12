@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import shutil
 import sys
@@ -10,6 +9,22 @@ import requests
 # fonts_metadata.json will be refreshed every 24 hours
 families_metadata_file = os.path.expandvars("$HOME/.cache/gfont/families_metadata.json")
 fonts_dir = os.path.expandvars("$HOME/.local/share/fonts/gfont")
+
+IS_ASSUME_YES = False
+
+LOG_COLORS = {
+    "DEBUG": "\033[34m",  # Blue
+    "INFO": "\033[0m",  # Default
+    "WARNING": "\033[33m",  # Yellow
+    "ERROR": "\033[31m",  # Red
+    "CRITICAL": "\033[35m",  # Purple
+    "RESET": "\033[0m",
+}
+
+
+def log(level, message, **kwargs):
+    level = level.upper()
+    print(f"{LOG_COLORS[level]}{message}{LOG_COLORS['RESET']}", **kwargs)
 
 
 def ask_yes_no(question):
@@ -23,8 +38,8 @@ def ask_yes_no(question):
             return True
 
 
-def __family_not_found(family_name, exit=False):
-    print("\033[31m'{}' not found\033[0m".format(family_name))
+def __family_not_found(family_name, exit=True):
+    log("error", f"'{family_name}' cannot be found")
 
     if exit:
         sys.exit(1)
@@ -36,7 +51,7 @@ def download_families_metadata():
     res = requests.get(url="https://fonts.google.com/metadata/fonts")
 
     if res.status_code != 200:
-        print(f"Fetching {res.url} failed with status code {res.status_code}")
+        log("error", f"Request to '{res.url}' failed. {res.reason}")
         sys.exit(1)
 
     os.makedirs(os.path.dirname(families_metadata_file), exist_ok=True)
@@ -51,7 +66,8 @@ def get_family_fonts(family):
     res = requests.get(f"https://fonts.google.com/download/list?family={family}")
 
     if res.status_code != 200:
-        raise Exception(f"Downloading {res.url} failed with status code {res.status_code}")
+        log("error", f"Request to '{res.url}' failed. {res.reason}")
+        sys.exit()
 
     # https://fonts.google.com/download/list?family={family} return )]}' at the
     # beginning of the response. I don't know why. But this will make json parser
@@ -66,31 +82,40 @@ def download_font(font, filepath, retries=5):
     :param retries: number of retries if downloading the font failed
     """
 
-    print(f"Downloading {font['filename']}")
+    if os.path.isfile(filepath):
+        age = time.time() - os.stat(filepath).st_mtime
 
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        # if download font file is older than 30 days, download it again
+        if age < 3600 * 24 * 30:
+            time.sleep(0.1)
+            return "cached"
 
-    content = None
+    need_retry = False
 
     try:
-        res = requests.get(font["url"], timeout=5)
+        res = requests.get(font["url"], timeout=10)
 
-        if res.status_code != 200:
-            raise Exception(res)
-
-        content = res.content
-    except Exception as ex:
-        if retries:
-            return download_font(font, filepath, retries - 1)
+        if res.status_code == 200:
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, "wb") as file:
+                file.write(res.content)
         else:
-            print(f"\033[31mFailed {font['filename']}\033[0m")
-            logging.error(ex)
-            return False
+            log("error", f"Downloading {font['url']} -> {font['filename']} failed. {res.reason}")
+            need_retry = True
 
-    with open(filepath, "wb") as file:
-        file.write(content)
+    except Exception as exception:
+        log("error", f"Downloading {font['url']} -> {font['filename']} failed. {exception} ")
+        need_retry = True
 
-    return True
+    if need_retry:
+        if retries > 0:
+            log("warning", f"Retrying {font['url']} -> {font['filename']}")
+            download_font(font, filepath, retries - 1)
+        else:
+            log("warning", f"Skipping {font['url']} -> {font['filename']}")
+            return "failed"
+
+    return "success"
 
 
 def get_families_metadata():
@@ -197,35 +222,38 @@ def download_family(unsafe_family_name):
     dir = os.path.join(fonts_dir, family.replace(" ", "_"))
     os.makedirs(dir, exist_ok=True)
 
-    print("Downloading '{}'".format(family))
-
     family_fonts = get_family_fonts(family)
     manifest_files = family_fonts["manifest"]["files"]
     font_files = family_fonts["manifest"]["fileRefs"]
 
     successed = []
+    cached = []
     failed = []
 
     for manifest in manifest_files:
         with open(os.path.join(dir, manifest["filename"]), "w") as file:
             file.write(manifest["contents"])
 
+    current = 1
+    total = len(font_files)
     for font in font_files:
-        if download_font(font, os.path.join(dir, font["filename"])):
+        log("info", f"({current}/{total}) Downloading {font['filename']}")
+
+        status = download_font(font, os.path.join(dir, font["filename"]))
+
+        if status == "success":
             successed.append(font)
+        if status == "cached":
+            cached.append(font)
         else:
             failed.append(font)
 
-    if len(failed) > 0:
-        print("\nRetrying failed downloads")
-
-        for font in failed:
-            download_font(font, os.path.join(dir, font["filename"]))
+        current = current + 1
 
     os.system("fc-cache")
 
-    print("Success {}. Failed {}.".format(len(successed), len(failed)))
-    print("Installation finish.")
+    log("info", f"Success {len(successed) + len(cached)} Failed {len(failed)} Cached {len(cached)}")
+    log("info", "Installation finish.")
 
 
 def remove_family(family):
@@ -288,7 +316,7 @@ def preview_font(font, preview_text=None, font_size=48):
 
         os.remove(fontfile)
     else:
-        print("\033[31mError: Cannot preview the font, imagemagick didn't installed\033[0m")
+        log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
 
 def split_long_text(text, max_words_count):
