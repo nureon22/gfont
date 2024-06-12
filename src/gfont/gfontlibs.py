@@ -250,7 +250,8 @@ def download_family(unsafe_family_name):
 
         current = current + 1
 
-    os.system("fc-cache")
+    if shutil.which("fc-cache"):
+        os.system("fc-cache")
 
     log("info", f"Success {len(successed) + len(cached)} Failed {len(failed)} Cached {len(cached)}")
     log("info", "Installation finish.")
@@ -264,7 +265,8 @@ def remove_family(family):
 
     if os.path.isdir(dir):
         os.removedirs(dir)
-        os.system("fc-cache")
+        if shutil.which("fc-cache"):
+            os.system("fc-cache")
 
 
 def get_installed_families():
