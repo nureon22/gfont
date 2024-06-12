@@ -15,10 +15,10 @@ python3 -m venv .
 
 pip install poetry
 
-poetry install
-```
+poetry build
 
-**In Debian, pipx is recommended instead of pip.**
+pip install dist/gfont-<version>-py3-none-any.whl
+```
 
 ### Requirements
 
