@@ -1,7 +1,7 @@
 import argparse
 import json
 
-from . import gfontlibs
+import gfontlibs
 
 
 def search_command(args):
