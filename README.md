@@ -22,7 +22,7 @@ poetry install
 
 ### Requirements
 
-python 3.8 or newer
+python 3.7 or newer
 
 #### Development Dependencies
 
