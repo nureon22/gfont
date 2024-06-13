@@ -60,64 +60,6 @@ def download_families_metadata():
         file.write(res.text)
 
 
-def get_family_fonts(family):
-    "Get list of files (including manifest files) contains in a font family"
-
-    res = requests.get(f"https://fonts.google.com/download/list?family={family}")
-
-    if res.status_code != 200:
-        log("error", f"Request to '{res.url}' failed. {res.reason}")
-        sys.exit()
-
-    # https://fonts.google.com/download/list?family={family} return )]}' at the
-    # beginning of the response. I don't know why. But this will make json parser
-    # to fail.
-    return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
-
-
-def download_font(font, filepath, retries=5):
-    """Download the given font, not complete set of font family.
-
-    :param font: dictionary that hold information of a font, much contains 'filename' and 'url' properties.
-    :param retries: number of retries if downloading the font failed
-    """
-
-    if os.path.isfile(filepath):
-        age = time.time() - os.stat(filepath).st_mtime
-
-        # if download font file is older than 30 days, download it again
-        if age < 3600 * 24 * 30:
-            time.sleep(0.1)
-            return "cached"
-
-    need_retry = False
-
-    try:
-        res = requests.get(font["url"], timeout=10)
-
-        if res.status_code == 200:
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            with open(filepath, "wb") as file:
-                file.write(res.content)
-        else:
-            log("error", f"Downloading {font['url']} -> {font['filename']} failed. {res.reason}")
-            need_retry = True
-
-    except Exception as exception:
-        log("error", f"Downloading {font['url']} -> {font['filename']} failed. {exception} ")
-        need_retry = True
-
-    if need_retry:
-        if retries > 0:
-            log("warning", f"Retrying {font['url']} -> {font['filename']}")
-            download_font(font, filepath, retries - 1)
-        else:
-            log("warning", f"Skipping {font['url']} -> {font['filename']}")
-            return "failed"
-
-    return "success"
-
-
 def get_families_metadata():
     """Get metadata of all available font families"""
 
@@ -131,6 +73,21 @@ def get_families_metadata():
         download_families_metadata()
 
     return json.loads(open(families_metadata_file, "r").read())
+
+
+def get_family_fonts(family):
+    "Get list of files (including manifest files) contains in a font family"
+
+    res = requests.get(f"https://fonts.google.com/download/list?family={family}")
+
+    if res.status_code != 200:
+        log("error", f"Request to '{res.url}' failed. {res.reason}")
+        sys.exit()
+
+    # https://fonts.google.com/download/list?family={family} return )]}' at the
+    # beginning of the response. I don't know why. But this will make json parser
+    # to fail.
+    return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
 
 def search_families(keywords, exact=False):
@@ -207,6 +164,49 @@ def get_family_info(family_name, isRaw=False):
         \r"""
 
     return content
+
+
+def download_font(font, filepath, retries=5):
+    """Download the given font, not complete set of font family.
+
+    :param font: dictionary that hold information of a font, much contains 'filename' and 'url' properties.
+    :param retries: number of retries if downloading the font failed
+    """
+
+    if os.path.isfile(filepath):
+        age = time.time() - os.stat(filepath).st_mtime
+
+        # if download font file is older than 30 days, download it again
+        if age < 3600 * 24 * 30:
+            time.sleep(0.1)
+            return "cached"
+
+    need_retry = False
+
+    try:
+        res = requests.get(font["url"], timeout=10)
+
+        if res.status_code == 200:
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, "wb") as file:
+                file.write(res.content)
+        else:
+            log("error", f"Downloading {font['url']} -> {font['filename']} failed. {res.reason}")
+            need_retry = True
+
+    except Exception as exception:
+        log("error", f"Downloading {font['url']} -> {font['filename']} failed. {exception} ")
+        need_retry = True
+
+    if need_retry:
+        if retries > 0:
+            log("warning", f"Retrying {font['url']} -> {font['filename']}")
+            download_font(font, filepath, retries - 1)
+        else:
+            log("warning", f"Skipping {font['url']} -> {font['filename']}")
+            return "failed"
+
+    return "success"
 
 
 def download_family(unsafe_family_name):
