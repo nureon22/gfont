@@ -1,7 +1,7 @@
 import argparse
 
 from . import gfontlibs
-from .version import VERSION
+from .version import version
 
 
 def search_command(args):
@@ -119,7 +119,7 @@ def main():
     args = argparser.parse_args()
 
     if "version" in args and args.version:
-        print(VERSION)
+        print(version)
 
     if "yes" in args and args.yes:
         gfontlibs.IS_ASSUME_YES = True
