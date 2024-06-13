@@ -138,7 +138,7 @@ def main():
         gfontlibs.IS_ASSUME_YES = True
 
     if "no_cache" in args and args.no_cache:
-        gfontlibs.IGNORE_CACHES = True
+        gfontlibs.IS_NO_CACHE = True
 
     if "func" in args:
         args.func(args)
