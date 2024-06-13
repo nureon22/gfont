@@ -1,0 +1,67 @@
+<h1>Browse and install fonts from fonts.google.com</h1>
+<p>⚠️ <strong>Warning: this project is still in development</strong></p>
+<h2>Installation</h2>
+<pre><code class="language-sh">git clone https://github.com/nureon22/gfont.git &lt;dir&gt;
+
+cd &lt;dir&gt;
+
+python3 -m venv .
+
+. bin/activate
+
+pip install poetry
+
+poetry build
+
+pip install dist/gfont-&lt;version&gt;-py3-none-any.whl
+</code></pre>
+<h3>Requirements</h3>
+<p>python 3.7 or newer</p>
+<h4>Development Dependencies</h4>
+<ul>
+<li>poetry</li>
+</ul>
+<h4>Runtime Dependencies</h4>
+<ul>
+<li>requests</li>
+<li>imagemagick (optional) - Require to preview the font</li>
+</ul>
+<h2>Usages</h2>
+<p>All commands support case-insensitive family names<br />
+You can also use underscore (_) instead of space character</p>
+<h3>Search font families</h3>
+<pre><code class="language-sh">gfont search &quot;Noto Sans&quot;
+</code></pre>
+<h3>Veiw information of a font family</h3>
+<pre><code class="language-sh">gfont info &quot;Noto Sans&quot;
+</code></pre>
+<h3>View information of a font family in raw json format</h3>
+<p>This will show all the information</p>
+<pre><code class="language-sh">gfont info --raw &quot;Noto Sans&quot;
+</code></pre>
+<h3>Install a font family</h3>
+<pre><code class="language-sh">gfont install &quot;Noto Sans&quot;
+</code></pre>
+<h3>Remove a installed font family</h3>
+<pre><code class="language-sh">gfont remove &quot;Noto Sans&quot;
+</code></pre>
+<h3>Preview a font family</h3>
+<p><strong>Please install imagemagick first</strong></p>
+<pre><code class="language-sh">gfont preview &quot;Noto Sans&quot;
+</code></pre>
+<h3>List all available font families</h3>
+<pre><code class="language-sh">gfont list
+</code></pre>
+<h3>List only installed font families</h3>
+<pre><code class="language-sh">gfont list --installed
+</code></pre>
+<h3>Related files and directories</h3>
+<p>Metadata of all available families. This file will be refreshed every 24 hours.</p>
+<p>Linux: <code>~/.cache/gfont/families_metadata.json</code><br />
+Mac: <code>~/Library/Caches/gfont/families_metadata.json</code></p>
+<p>Image of last previewed font family</p>
+<p>Linux: <code>~/.cache/gfont/preview.png</code><br />
+Mac: <code>~/Library/Caches/gfont/preview.png</code></p>
+<p>Directory for installed fonts</p>
+<p>Linux: <code>~/.local/share/fonts/gfont</code><br />
+Mac: <code>~/Library/Fonts/gfont</code></p>

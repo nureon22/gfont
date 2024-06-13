@@ -1,14 +1,23 @@
 import json
 import os
+import platform
 import shutil
 import sys
 import time
 
 import requests
 
-# fonts_metadata.json will be refreshed every 24 hours
-families_metadata_file = os.path.expandvars("$HOME/.cache/gfont/families_metadata.json")
-fonts_dir = os.path.expandvars("$HOME/.local/share/fonts/gfont")
+system_platform = platform.system()
+
+if system_platform == "Linux":
+    families_metadata_file = os.path.expanduser("~/.cache/gfont/families_metadata.json")
+    fonts_dir = os.path.expanduser("~/.local/share/fonts/gfont")
+elif system_platform == "Darwin":
+    families_metadata_file = os.path.expanduser("~/Library/Caches/gfont/families_metadata.json")
+    fonts_dir = os.path.expanduser("~/Library/Fonts/gfont")
+else:
+    raise Exception("You system is not supported yet")
+
 
 IS_ASSUME_YES = False
 

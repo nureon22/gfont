@@ -90,11 +90,17 @@ gfont list --installed
 
 ### Related files and directories
 
-Metadata of all available families. This file will be refreshed every 24 hours.\
-`$HOME/.cache/gfont/families_metadata.json`
+Metadata of all available families. This file will be refreshed every 24 hours.
 
-Image of last previewed font family\
-`$HOME/.cache/gfont/preview.png`
+Linux: `~/.cache/gfont/families_metadata.json`\
+Mac: `~/Library/Caches/gfont/families_metadata.json`
 
-Directory for installed fonts\
-`$HOME/.local/share/fonts/gfont`
+Image of last previewed font family
+
+Linux: `~/.cache/gfont/preview.png`\
+Mac: `~/Library/Caches/gfont/preview.png`
+
+Directory for installed fonts
+
+Linux: `~/.local/share/fonts/gfont`\
+Mac: `~/Library/Fonts/gfont`
