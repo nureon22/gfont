@@ -1,6 +1,7 @@
 # Browse and install fonts from fonts.google.com
 
-⚠️ **Warning: this project is still in development**
+⚠️ **Warning: this project is still in development**\
+⚠️ **Warning: Doesn't support the Windows yet**
 
 ## Installation
 
