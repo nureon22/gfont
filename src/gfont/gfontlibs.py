@@ -380,6 +380,7 @@ def pack_webfonts(family_name, dir):
     nospace_family_name = family_metadata["family"].replace(" ", "_")
 
     fonts = re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)
+    fonts = list(set(fonts))
 
     current = 1
     total = len(fonts)
