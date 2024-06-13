@@ -39,6 +39,12 @@ python 3.7 or newer
 All commands support case-insensitive family names\
 You can also use underscore (\_) instead of space character
 
+### Install a font family
+
+```sh
+gfont install "Noto Sans"
+```
+
 ### Search font families
 
 ```sh
@@ -58,22 +64,10 @@ This will show all the information
 gfont info --raw "Noto Sans"
 ```
 
-### Install a font family
-
-```sh
-gfont install "Noto Sans"
-```
-
 ### Remove a installed font family
 
 ```sh
 gfont remove "Noto Sans"
-```
-
-### Pack a font family to use in websites as self-hosted fonts
-
-```sh
-gfont webfont "Noto Sans" --dir <dir>
 ```
 
 ### Preview a font family
@@ -93,6 +87,12 @@ gfont list
 
 ```sh
 gfont list --installed
+```
+
+### Pack a font family to use in websites as self-hosted fonts
+
+```sh
+gfont webfont "Noto Sans" --dir <dir>
 ```
 
 ### Related files and directories
