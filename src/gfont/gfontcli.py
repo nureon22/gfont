@@ -23,6 +23,7 @@ def info_command(args):
 
 def list_command(args):
     installed_families = gfontlibs.get_installed_families()
+    installed_families.sort()
 
     if args.installed:
         if len(installed_families) == 0:
