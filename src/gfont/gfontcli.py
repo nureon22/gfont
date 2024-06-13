@@ -1,6 +1,7 @@
 import argparse
 
 from . import gfontlibs
+from .version import VERSION
 
 
 def search_command(args):
@@ -68,6 +69,8 @@ def main():
         prog="gfont",
         description="Browse and download fonts from fonts.google.com",
     )
+    argparser.add_argument("-v", "--version", action="store_true", help="show version and exit")
+
     subparsers = argparser.add_subparsers(title="commands")
 
     # search sub-command
@@ -114,6 +117,9 @@ def main():
     preview_parser.set_defaults(func=preview_command)
 
     args = argparser.parse_args()
+
+    if "version" in args and args.version:
+        print(VERSION)
 
     if "yes" in args and args.yes:
         gfontlibs.IS_ASSUME_YES = True
