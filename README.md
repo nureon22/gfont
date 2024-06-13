@@ -3,6 +3,11 @@
 ⚠️ **Warning: this project is still in development**\
 ⚠️ **Warning: Doesn't support the Windows yet**
 
+- [Installation](#installation)
+  - [Requirements](#requirements)
+- [Usages](#usages)
+- [Related files and directories](#related-files-and-directories)
+
 ## Installation
 
 ```sh
@@ -39,57 +44,57 @@ python 3.7 or newer
 All commands support case-insensitive family names\
 You can also use underscore (\_) instead of space character
 
-### Install a font family
+#### Install a font family
 
 ```sh
 gfont install "Noto Sans"
 ```
 
-### Search font families
+#### Search font families
 
 ```sh
 gfont search "Noto Sans"
 ```
 
-### Veiw information of a font family
+#### Veiw information of a font family
 
 ```sh
 gfont info "Noto Sans"
 ```
 
-### View information of a font family in raw json format
+#### View information of a font family in raw json format
 This will show all the information
 
 ```sh
 gfont info --raw "Noto Sans"
 ```
 
-### Remove a installed font family
+#### Remove a installed font family
 
 ```sh
 gfont remove "Noto Sans"
 ```
 
-### Preview a font family
+#### Preview a font family
 
 **Please install imagemagick first**
 ```sh
 gfont preview "Noto Sans"
 ```
 
-### List all available font families
+#### List all available font families
 
 ```sh
 gfont list
 ```
 
-### List only installed font families
+#### List only installed font families
 
 ```sh
 gfont list --installed
 ```
 
-### Pack a font family to use in websites as self-hosted fonts
+#### Pack a font family to use in websites as self-hosted fonts
 
 ```sh
 gfont webfont "Noto Sans" --dir <dir>
