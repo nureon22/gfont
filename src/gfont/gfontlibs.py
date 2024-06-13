@@ -21,6 +21,7 @@ else:
 
 
 IS_ASSUME_YES = False
+IGNORE_CACHES = False
 
 LOG_COLORS = {
     "DEBUG": "\033[34m",  # Blue
@@ -209,13 +210,14 @@ def download_font(font, filepath, retries=5):
     :param retries: number of retries if downloading the font failed
     """
 
-    if os.path.isfile(filepath):
-        age = time.time() - os.stat(filepath).st_mtime
+    if not IGNORE_CACHES:
+        if os.path.isfile(filepath):
+            age = time.time() - os.stat(filepath).st_mtime
 
-        # if download font file is older than 30 days, download it again
-        if age < 3600 * 24 * 30:
-            time.sleep(0.1)
-            return "cached"
+            # if download font file is older than 30 days, download it again
+            if age < 3600 * 24 * 30:
+                time.sleep(0.1)
+                return "cached"
 
     need_retry = False
 

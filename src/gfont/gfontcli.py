@@ -104,6 +104,7 @@ def main():
     install_parser.add_argument(
         "-y", "--yes", action="store_true", help="Assume 'yes' as answer to all prompts and run non-interactively."
     )
+    install_parser.add_argument("--no-cache", action="store_true", help="download the font again, even it is already downloaded")
     install_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     install_parser.set_defaults(func=install_command)
 
@@ -124,6 +125,7 @@ def main():
     # webfont sub-command
     webfont_parser = subparsers.add_parser("webfont", help="pack a font family to use in websites")
     webfont_parser.add_argument("--dir", required=True, help="directory to place the packed webfonts")
+    webfont_parser.add_argument("--no-cache", action="store_true", help="download the font again, even it is already downloaded")
     webfont_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     webfont_parser.set_defaults(func=webfont_command)
 
@@ -134,6 +136,9 @@ def main():
 
     if "yes" in args and args.yes:
         gfontlibs.IS_ASSUME_YES = True
+
+    if "no_cache" in args and args.no_cache:
+        gfontlibs.IGNORE_CACHES = True
 
     if "func" in args:
         args.func(args)
