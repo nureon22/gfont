@@ -70,6 +70,12 @@ gfont install "Noto Sans"
 gfont remove "Noto Sans"
 ```
 
+### Pack a font family to use in websites as self-hosted fonts
+
+```sh
+gfont webfont "Noto Sans" --dir <dir>
+```
+
 ### Preview a font family
 
 **Please install imagemagick first**
