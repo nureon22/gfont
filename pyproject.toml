@@ -24,17 +24,12 @@ python = "^3.7"
 requests = "*"
 
 [tool.poetry.group.dev.dependencies]
-black = "*"
 pre-commit = "*"
 isort = "*"
 
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[tool.black]
-line-length = 120
-target-version = ["py38"]
 
 [tool.isort]
 multi_line_output = 3
