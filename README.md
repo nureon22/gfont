@@ -19,11 +19,11 @@ python3 -m venv .
 
 . bin/activate
 
-pip install poetry
+pip install -U pip
 
-poetry build
+pip install -U poetry
 
-pip install dist/gfont-<version>-py3-none-any.whl
+poetry install
 ```
 
 ### Requirements
