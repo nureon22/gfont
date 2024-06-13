@@ -377,6 +377,7 @@ def split_long_text(text, max_words_count):
 def pack_webfonts(family_name, dir):
     family_metadata = get_family_metadata(family_name)
     webfonts_css = get_family_webfonts_css(family_metadata["family"])
+    nospace_family_name = family_metadata["family"].replace(" ", "_")
 
     fonts = re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)
 
@@ -389,7 +390,7 @@ def pack_webfonts(family_name, dir):
 
     for font in fonts:
         filename = os.path.basename(font)
-        filepath = os.path.join(dir, family_metadata["family"], "fonts", filename)
+        filepath = os.path.join(dir, nospace_family_name, "fonts", filename)
         webfonts_css = webfonts_css.replace(font, f"fonts/{filename}")
 
         log("info", f"({current}/{total}) Downloading {font}")
@@ -405,7 +406,7 @@ def pack_webfonts(family_name, dir):
 
         current = current + 1
 
-    with open(os.path.join(dir, family_metadata["family"].replace(" ", "_") + ".css"), "w") as file:
+    with open(os.path.join(dir, nospace_family_name, nospace_family_name + ".css"), "w") as file:
         file.write(webfonts_css)
 
     log("info", f"Success {len(successed) + len(cached)} Failed {len(failed)} Cached {len(cached)}")
