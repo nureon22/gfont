@@ -65,6 +65,10 @@ def preview_command(args):
         gfontlibs.preview_font(regular_font, args.text if args.text else None)
 
 
+def webfont_command(args):
+    gfontlibs.pack_webfonts(args.family.replace("_", " "), args.dir)
+
+
 def main():
     argparser = argparse.ArgumentParser(
         prog="gfont",
@@ -116,6 +120,12 @@ def main():
     preview_parser.add_argument("--text", help="Write any preview text you want")
     preview_parser.add_argument("family", help="Name of the font family (case-insensitive)")
     preview_parser.set_defaults(func=preview_command)
+
+    # webfont sub-command
+    webfont_parser = subparsers.add_parser("webfont", help="pack a font family to use in websites")
+    webfont_parser.add_argument("--dir", required=True, help="directory to place the packed webfonts")
+    webfont_parser.add_argument("family", help="Name of the font family (case-insensitive)")
+    webfont_parser.set_defaults(func=webfont_command)
 
     args = argparser.parse_args()
 

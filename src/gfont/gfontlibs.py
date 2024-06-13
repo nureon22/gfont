@@ -1,6 +1,7 @@
 import json
 import os
 import platform
+import re
 import shutil
 import sys
 import time
@@ -97,6 +98,32 @@ def get_family_fonts(family):
     # beginning of the response. I don't know why. But this will make json parser
     # to fail.
     return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+
+
+def get_family_webfonts_css(family):
+    family_metadata = get_family_metadata(family)
+    url = f"https://fonts.googleapis.com/css2?family={family_metadata['family'].replace(' ', '+')}"
+
+    if "fonts" in family_metadata:
+        fonts = family_metadata["fonts"].keys()
+        normalfonts = []
+        italicfonts = []
+
+        for font in fonts:
+            if font.endswith("i"):
+                italicfonts.append("1," + font[:-1])
+            else:
+                normalfonts.append("0," + font)
+
+        url = url + ":ital,wght@" + ";".join([*normalfonts, *italicfonts])
+
+    res = requests.get(url, headers={ "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0" })
+
+    if res.status_code != 200:
+        log("error", f"Request to {res.url} failed. {res.reason}")
+        sys.exit(1)
+
+    return res.text
 
 
 def search_families(keywords, exact=False):
@@ -343,3 +370,40 @@ def split_long_text(text, max_words_count):
         result = result + " ".join(words[index:end]) + "\n"
 
     return result
+
+def pack_webfonts(family_name, dir):
+    family_metadata = get_family_metadata(family_name)
+    webfonts_css = get_family_webfonts_css(family_metadata["family"])
+
+    fonts = re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)
+
+    current = 1
+    total = len(fonts)
+
+    successed = []
+    failed = []
+    cached = []
+
+    for font in fonts:
+        filename = os.path.basename(font)
+        filepath = os.path.join(dir, family_metadata["family"], "fonts", filename)
+        webfonts_css = webfonts_css.replace(font, f"fonts/{filename}")
+
+        log("info", f"({current}/{total}) Downloading {font}")
+
+        status = download_font({ "filename":  filename, "url": font }, filepath)
+
+        if status == "success":
+            successed.append(font)
+        elif status == "failed":
+            failed.append(font)
+        else:
+            cached.append(font)
+
+        current = current + 1
+
+    with open(os.path.join(dir, family_metadata["family"].replace(" ", "_") + ".css"), "w") as file:
+        file.write(webfonts_css)
+
+    log("info", f"Success {len(successed) + len(cached)} Failed {len(failed)} Cached {len(cached)}")
+    log("info", "Packing webfonts finished.")
