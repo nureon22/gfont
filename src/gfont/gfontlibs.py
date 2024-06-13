@@ -69,6 +69,7 @@ def download_families_metadata():
 
     with open(families_metadata_file, "w") as file:
         file.write(res.text)
+        file.close()
 
 
 def get_families_metadata():
@@ -83,7 +84,13 @@ def get_families_metadata():
     else:
         download_families_metadata()
 
-    return json.loads(open(families_metadata_file, "r").read())
+    content = ""
+
+    with open(families_metadata_file, "r") as file:
+        content = file.read()
+        file.close()
+
+    return json.loads(content)
 
 
 def get_family_fonts(family):
@@ -228,6 +235,7 @@ def download_font(font, filepath, retries=5):
             os.makedirs(os.path.dirname(filepath), exist_ok=True)
             with open(filepath, "wb") as file:
                 file.write(res.content)
+                file.close()
         else:
             log("error", f"Downloading {font['url']} -> {font['filename']} failed. {res.reason}")
             need_retry = True
@@ -271,6 +279,7 @@ def download_family(unsafe_family_name):
     for manifest in manifest_files:
         with open(os.path.join(dir, manifest["filename"]), "w") as file:
             file.write(manifest["contents"])
+            file.close()
 
     current = 1
     total = len(font_files)
@@ -409,6 +418,7 @@ def pack_webfonts(family_name, dir):
 
     with open(os.path.join(dir, nospace_family_name, nospace_family_name + ".css"), "w") as file:
         file.write(webfonts_css)
+        file.close()
 
     log("info", f"Success {len(successed) + len(cached)} Failed {len(failed)} Cached {len(cached)}")
     log("info", "Packing webfonts finished.")
