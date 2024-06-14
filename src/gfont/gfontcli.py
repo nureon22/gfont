@@ -40,7 +40,7 @@ def list_command(args):
 
 
 def install_command(args):
-    families = [gfontlibs.resolve_family_name(family) for family in args.family]
+    families = [gfontlibs.resolve_family_name(family) for family in args.family[0]]
 
     if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no('Installing "{}"\nDo you want to continue'.format('", "'.join(families))):
         for family in families:
@@ -48,7 +48,7 @@ def install_command(args):
 
 
 def remove_command(args):
-    families = [gfontlibs.resolve_family_name(family) for family in args.family]
+    families = [gfontlibs.resolve_family_name(family) for family in args.family[0]]
 
     if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no('Removing "{}"\nDo you want to continue'.format('", "'.join(families))):
         for family in families:
@@ -69,7 +69,7 @@ def preview_command(args):
 
 
 def webfont_command(args):
-    families = [family for family in args.family]
+    families = [family for family in args.family[0]]
 
     for family in families:
         gfontlibs.pack_webfonts(family, args.dir)
@@ -111,7 +111,7 @@ def main():
         "-y", "--yes", action="store_true", help="Assume 'yes' as answer to all prompts and run non-interactively."
     )
     install_parser.add_argument("--no-cache", action="store_true", help="download the font again, even it is already downloaded")
-    install_parser.add_argument("family", action="extend", nargs="+", help="Name of the font family (case-insensitive)")
+    install_parser.add_argument("family", action="append", nargs="+", help="Name of the font family (case-insensitive)")
     install_parser.set_defaults(func=install_command)
 
     # remove sub-command
@@ -119,7 +119,7 @@ def main():
     remove_parser.add_argument(
         "-y", "--yes", action="store_true", help="Assume 'yes' as answer to all prompts and run non-interactively."
     )
-    remove_parser.add_argument("family", action="extend", nargs="+", help="Name of the font family (case-insensitive)")
+    remove_parser.add_argument("family", action="append", nargs="+", help="Name of the font family (case-insensitive)")
     remove_parser.set_defaults(func=remove_command)
 
     # preview sub-command
@@ -132,7 +132,7 @@ def main():
     webfont_parser = subparsers.add_parser("webfont", help="pack a font family to use in websites")
     webfont_parser.add_argument("--dir", required=True, help="directory to place the packed webfonts")
     webfont_parser.add_argument("--no-cache", action="store_true", help="download the font again, even it is already downloaded")
-    webfont_parser.add_argument("family", action="extend", nargs="+", help="Name of the font family (case-insensitive)")
+    webfont_parser.add_argument("family", action="append", nargs="+", help="Name of the font family (case-insensitive)")
     webfont_parser.set_defaults(func=webfont_command)
 
     args = argparser.parse_args()
@@ -148,6 +148,8 @@ def main():
 
     if "func" in args:
         args.func(args)
+
+    print(args)
 
 
 if __name__ == "__main__":
