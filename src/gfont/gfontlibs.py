@@ -11,10 +11,10 @@ import requests
 system_platform = platform.system()
 
 if system_platform == "Linux":
-    families_metadata_file = os.path.expanduser("~/.cache/gfont/families_metadata.json")
+    cache_file = os.path.expanduser("~/.cache/gfont/families.json")
     fonts_dir = os.path.expanduser("~/.local/share/fonts/gfont")
 elif system_platform == "Darwin":
-    families_metadata_file = os.path.expanduser("~/Library/Caches/gfont/families_metadata.json")
+    cache_file = os.path.expanduser("~/Library/Caches/gfont/families.json")
     fonts_dir = os.path.expanduser("~/Library/Fonts/gfont")
 else:
     raise Exception("You system is not supported yet")
@@ -56,8 +56,8 @@ def __family_not_found(family_name, exit=True):
         sys.exit(1)
 
 
-def download_families_metadata():
-    "Download metadata of all available font families to specified filepath"
+def download_available_families_list():
+    """Download all available font family names to specified filepath"""
 
     res = requests.get(url="https://fonts.google.com/metadata/fonts")
 
@@ -65,36 +65,40 @@ def download_families_metadata():
         log("error", f"Request to '{res.url}' failed. {res.reason}")
         sys.exit(1)
 
-    os.makedirs(os.path.dirname(families_metadata_file), exist_ok=True)
+    os.makedirs(os.path.dirname(cache_file), exist_ok=True)
 
-    with open(families_metadata_file, "w") as file:
-        file.write(res.text)
+    families = [family_metadata["family"] for family_metadata in json.loads(res.text)["familyMetadataList"]]
+
+    with open(cache_file, "w") as file:
+        file.write(json.dumps(families))
         file.close()
 
 
-def get_families_metadata():
-    """Get metadata of all available font families"""
+def get_available_families():
+    """Get all available font family names"""
 
-    if os.path.isfile(families_metadata_file):
-        age = time.time() - os.stat(families_metadata_file).st_mtime
+    if os.path.isfile(cache_file):
+        age = time.time() - os.stat(cache_file).st_mtime
 
-        # if fonts_metadata_file is older than 24 hours, download again.
-        if age > 3600 * 24:
-            download_families_metadata()
+        # if fonts_metadata_file is older than 30 days, download again.
+        if age > 3600 * 24 * 30:
+            download_available_families_list()
     else:
-        download_families_metadata()
+        download_available_families_list()
 
     content = ""
 
-    with open(families_metadata_file, "r") as file:
+    with open(cache_file, "r") as file:
         content = file.read()
         file.close()
 
     return json.loads(content)
 
 
-def get_family_fonts(family):
+def get_family_fonts(unsafe_family_name):
     "Get list of files (including manifest files) contains in a font family"
+
+    family = resolve_family_name(unsafe_family_name)
 
     res = requests.get(f"https://fonts.google.com/download/list?family={family}")
 
@@ -108,8 +112,11 @@ def get_family_fonts(family):
     return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
 
-def get_family_webfonts_css(family):
-    family_metadata = get_family_metadata(family)
+def get_family_webfonts_css(unsafe_family_metadata):
+    """Return CSS content of a font family"""
+
+    family_metadata = get_family_metadata(unsafe_family_metadata)
+
     url = f"https://fonts.googleapis.com/css2?family={family_metadata['family'].replace(' ', '+')}"
 
     if "fonts" in family_metadata:
@@ -125,6 +132,7 @@ def get_family_webfonts_css(family):
 
         url = url + ":ital,wght@" + ";".join([*normalfonts, *italicfonts])
 
+    # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     res = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0"})
 
     if res.status_code != 200:
@@ -137,60 +145,73 @@ def get_family_webfonts_css(family):
 def search_families(keywords, exact=False):
     """Search font families contain given keywords.
 
-    :param exact: if True, given keywords will be directly compare to name of the font family. But still case-insensitive.
+    :param exact - if True, given keywords will be directly compare to name of the font family. But still case-insensitive.
+    :return - Return a list contains font family names
     """
-
-    families_metadata = get_families_metadata()
-    family_metadata_list = families_metadata["familyMetadataList"]
 
     results = []
 
-    for family_metadata in family_metadata_list:
-        family = family_metadata["family"].lower()
-
+    for family in get_available_families():
         not_found = False
+        family_lower = family.lower()
 
         for keyword in keywords:
             keyword = keyword.replace("  ", "").strip().lower()
 
             if exact:
-                if family != keyword:
+                if family_lower != keyword:
                     not_found = True
             else:
-                if family.find(keyword) == -1:
+                if family_lower.find(keyword) == -1:
                     not_found = True
 
         if not not_found:
-            results.append(family_metadata)
+            results.append(family)
 
     return results
 
 
-def get_family_metadata(family_name):
-    """Get metadata of a specific font family"""
+def get_family_metadata(unsafe_family_name):
+    """Get metadata of a specific font family
 
-    families = search_families([family_name.replace("_", " ")], True)
+    :return - Return a dict contains metadata of a font family
+    """
+
+    family = resolve_family_name(unsafe_family_name)
+
+    res = requests.get(f"https://fonts.google.com/metadata/fonts/{family}")
+
+    if res.status_code != 200:
+        log("error", f"Request to '{res.url}' failed. {res.reason}")
+        sys.exit()
+
+    # "https://fonts.google.com/metadata/fonts/{family}" return )]}' at the
+    # beginning of the response. I don't know why. But this will make json parser
+    # to fail.
+    return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+
+
+def resolve_family_name(unsafe_family_name):
+    """Resolve a font family name contains (case-insensitive,underscore) to valid name"""
+
+    families = search_families([unsafe_family_name.replace("_", " ")])
 
     if len(families) == 0:
-        __family_not_found(family_name, True)
+        __family_not_found(unsafe_family_name, True)
 
     return families[0]
 
 
-def resolve_family_name(family_name):
-    return get_family_metadata(family_name)["family"]
-
-
-def get_family_info(family_name, isRaw=False):
+def get_family_info(unsafe_family_name, isRaw=False):
     """Get metadata of a specific font family in pretty print format
 
     :param isRaw: if True, return is raw json format (contains extra informations)
     """
 
-    family_metadata = get_family_metadata(family_name)
+    family_metadata = get_family_metadata(unsafe_family_name)
 
     if family_metadata is None:
-        __family_not_found(family_name, True)
+        __family_not_found(unsafe_family_name, True)
 
     content = ""
 
@@ -201,9 +222,10 @@ def get_family_info(family_name, isRaw=False):
             \r\033[01;34m{family_metadata['family']}\033[0m
             \r------------
             \r\033[34mCategory\033[0m   : {family_metadata['category']}
-            \r\033[34mSubsets\033[0m    : {', '.join(family_metadata['subsets'])}
+            \r\033[34mSubsets\033[0m    : {', '.join(family_metadata['coverage'].keys())}
             \r\033[34mFonts\033[0m      : {', '.join(list(family_metadata['fonts'].keys()))}
-            \r\033[34mDesigners\033[0m  : {', '.join(family_metadata['designers'])}
+            \r\033[34mDesigners\033[0m  : {', '.join([designer["name"] for designer in family_metadata['designers']])}
+            \r\033[34mLicense\033[0m    : {family_metadata['license']}
             \r\033[34mOpenSource\033[0m : {family_metadata['isOpenSource']}
         \r"""
 
@@ -304,10 +326,10 @@ def download_family(unsafe_family_name):
     log("info", "Installation '{}' finished.".format(family))
 
 
-def remove_family(family):
+def remove_family(unsafe_family_name):
     """Remove already installed font family. If given font family wasn't installed yet, do nothing."""
 
-    family = resolve_family_name(family)
+    family = resolve_family_name(unsafe_family_name)
     dir = os.path.join(fonts_dir, family.replace(" ", "_"))
 
     if os.path.isdir(dir):
@@ -332,11 +354,11 @@ def get_installed_families():
     return families
 
 
-def get_license_content(family):
+def get_license_content(unsafe_family_family):
     """
     Get license of a font family. Not just license name, including its contents.
     """
-    family_fonts = get_family_fonts(family)
+    family_fonts = get_family_fonts(unsafe_family_family)
 
     for manifest in family_fonts["manifest"]["files"]:
         if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
@@ -386,8 +408,8 @@ def split_long_text(text, max_words_count):
     return result
 
 
-def pack_webfonts(family_name, dir):
-    family_metadata = get_family_metadata(family_name)
+def pack_webfonts(unsafe_family_name, dir):
+    family_metadata = get_family_metadata(unsafe_family_name)
     webfonts_css = get_family_webfonts_css(family_metadata["family"])
     nospace_family_name = family_metadata["family"].replace(" ", "_")
 

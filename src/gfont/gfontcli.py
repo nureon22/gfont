@@ -8,15 +8,15 @@ def search_command(args):
     installed_families = gfontlibs.get_installed_families()
 
     for family in gfontlibs.search_families(args.keywords):
-        if family["family"] in installed_families:
-            print(f"\033[34m{family['family']}\033[0m [installed]")
+        if family in installed_families:
+            print("\033[34m{}\033[0m [installed]".format(family))
         else:
-            print(f"\033[34m{family['family']}\033[0m")
+            print("\033[34m{}\033[0m".format(family))
 
 
 def info_command(args):
     if args.license:
-        print(gfontlibs.get_license_content(gfontlibs.resolve_family_name(args.family)))
+        print(gfontlibs.get_license_content(args.family))
     else:
         print(gfontlibs.get_family_info(args.family, args.raw))
 
@@ -30,13 +30,13 @@ def list_command(args):
             print("No installed font families")
         else:
             for family in installed_families:
-                print(f"\033[34m{family}\033[0m")
+                print("\033[34m{}\033[0m".format(family))
     else:
-        for family_metadata in gfontlibs.get_families_metadata()["familyMetadataList"]:
-            if family_metadata["family"] in installed_families:
-                print(f"\033[34m{family_metadata['family']}\033[0m [installed]")
+        for family in gfontlibs.get_available_families():
+            if family in installed_families:
+                print("\033[34m{}\033[0m [installed]".format(family))
             else:
-                print(f"\033[34m{family_metadata['family']}\033[0m")
+                print("\033[34m{}\033[0m".format(family))
 
 
 def install_command(args):
@@ -56,8 +56,7 @@ def remove_command(args):
 
 
 def preview_command(args):
-    family = gfontlibs.resolve_family_name(args.family)
-    fonts = gfontlibs.get_family_fonts(family)["manifest"]["fileRefs"]
+    fonts = gfontlibs.get_family_fonts(args.family)["manifest"]["fileRefs"]
 
     regular_font: dict | None = None
 
