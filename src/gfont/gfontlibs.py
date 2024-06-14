@@ -169,7 +169,7 @@ def search_families(keywords, exact=False):
 def get_family_metadata(family_name):
     """Get metadata of a specific font family"""
 
-    families = search_families([family_name], True)
+    families = search_families([family_name.replace("_", " ")], True)
 
     if len(families) == 0:
         __family_not_found(family_name, True)
