@@ -25,17 +25,17 @@ def list_command(args):
     installed_families = gfontlibs.get_installed_families()
     installed_families.sort()
 
-    if args.installed:
-        if len(installed_families) == 0:
-            print("No installed font families")
-        else:
-            for family in installed_families:
-                print("\033[34m{}\033[0m".format(family))
-    else:
+    if args.all:
         for family in gfontlibs.get_available_families():
             if family in installed_families:
                 print("\033[34m{}\033[0m [installed]".format(family))
             else:
+                print("\033[34m{}\033[0m".format(family))
+    else:
+        if len(installed_families) == 0:
+            print("No installed font families")
+        else:
+            for family in installed_families:
                 print("\033[34m{}\033[0m".format(family))
 
 
@@ -101,8 +101,8 @@ def main():
     info_parser.set_defaults(func=info_command)
 
     # list sub-command
-    list_parser = subparsers.add_parser("list", help="list available font families")
-    list_parser.add_argument("--installed", action="store_true", help="list only installed font families")
+    list_parser = subparsers.add_parser("list", help="list installed font families")
+    list_parser.add_argument("--all", action="store_true", help="list all available font families")
     list_parser.set_defaults(func=list_command)
 
     # install sub-command
