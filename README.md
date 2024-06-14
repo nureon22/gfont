@@ -1,12 +1,22 @@
 # Browse and install fonts from fonts.google.com
 
-⚠️ **Warning: this project is still in development**\
-⚠️ **Warning: Doesn't support the Windows yet**
+⚠️ **Warning:** this project is still in development and doesn't support the Windows yet
 
 - [Installation](#installation)
   - [Requirements](#requirements)
+    - [Runtime Dependencies](#runtime-dependencies)
+    - [Development Dependencies](#development-dependencies)
 - [Usages](#usages)
-- [Related files and directories](#related-files-and-directories)
+  - [Install](#install)
+  - [Search](#search)
+  - [Veiw information](#veiw-information)
+  - [Remove](#remove)
+  - [Preview](#preview)
+  - [List installed font families](#list-installed-font-families)
+  - [Pack as webfont](#pack-as-webfont)
+  - [For mor information](#for-mor-information)
+- [Related files](#related-files)
+
 
 ## Installation
 
@@ -15,87 +25,87 @@ git clone https://github.com/nureon22/gfont.git <dir>
 
 cd <dir>
 
-python3 -m venv .
+sh devscripts/build.sh
 
-. bin/activate
-
-pip install -U pip
-
-pip install -U poetry
-
-poetry install
+pip install dist/gfont-<version>-py3-none-any.whl
 ```
+
+**Note:** For linux, pipx is recommended instead of pip
 
 ### Requirements
 
-python 3.7 or newer
-
-#### Development Dependencies
-
-* poetry
+* python 3.7 or newer
+* python-venv
+* git
 
 #### Runtime Dependencies
 
 * requests
 * imagemagick (optional) - Require to preview the font
 
+#### Development Dependencies
+
+* poetry (development)
+
 ## Usages
 
 All commands support case-insensitive family names\
 You can also use underscore (\_) instead of space character
 
-#### Install a font family
+### Install
 
 ```sh
 gfont install "Noto Sans"
 ```
 
-#### Search font families
+### Search
 
 ```sh
 gfont search "Noto Sans"
 ```
 
-#### Veiw information of a font family
+### Veiw information
 
 ```sh
 gfont info "Noto Sans"
 ```
 
-#### Remove a installed font family
+### Remove
 
 ```sh
 gfont remove "Noto Sans"
 ```
 
-#### Preview a font family
+### Preview
 
-**Please install imagemagick first**
+Please install imagemagick first
 ```sh
 gfont preview "Noto Sans"
 ```
 
-#### List installed font families
+### List installed font families
 
 ```sh
 gfont list
 ```
 
-#### Pack a font family to use in websites as self-hosted fonts
+### Pack as webfont
+Pack a font family to use in websites as self-hosted fonts
 
 ```sh
 gfont webfont "Noto Sans" --dir <dir>
 ```
 
-#### For mor information
+### For mor information
 `gfont <command> --help`
 
-### Related files and directories
 
-Metadata of all available families. This file will be refreshed every 24 hours.
+## Related files
 
-Linux: `~/.cache/gfont/families_metadata.json`\
-Mac: `~/Library/Caches/gfont/families_metadata.json`
+List of all available font families. This file will be refreshed every 30 days
+
+Linux: `~/.cache/gfont/families.json`\
+Mac: `~/Library/Caches/gfont/families.json`
 
 Image of last previewed font family
 
