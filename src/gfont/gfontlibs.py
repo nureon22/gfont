@@ -311,7 +311,7 @@ def remove_family(family):
     dir = os.path.join(fonts_dir, family.replace(" ", "_"))
 
     if os.path.isdir(dir):
-        os.removedirs(dir)
+        shutil.rmtree(dir)
         if shutil.which("fc-cache"):
             os.system("fc-cache")
 
