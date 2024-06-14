@@ -16,9 +16,9 @@ def search_command(args):
 
 def info_command(args):
     if args.license:
-        print(gfontlibs.get_license_content(gfontlibs.resolve_family_name(args.family.replace("_", " "))))
+        print(gfontlibs.get_license_content(gfontlibs.resolve_family_name(args.family)))
     else:
-        print(gfontlibs.get_family_info(args.family.replace("_", " "), args.raw))
+        print(gfontlibs.get_family_info(args.family, args.raw))
 
 
 def list_command(args):
@@ -40,19 +40,23 @@ def list_command(args):
 
 
 def install_command(args):
-    family = gfontlibs.resolve_family_name(args.family.replace("_", " "))
-    if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no(f"Installing '{family}'"):
-        gfontlibs.download_family(family)
+    families = [gfontlibs.resolve_family_name(family) for family in args.family]
+
+    if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no('Installing "{}"\nDo you want to continue'.format('", "'.join(families))):
+        for family in families:
+            gfontlibs.download_family(family)
 
 
 def remove_command(args):
-    family = gfontlibs.resolve_family_name(args.family.replace("_", " "))
-    if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no(f"Installing '{family}'"):
-        gfontlibs.remove_family(family)
+    families = [gfontlibs.resolve_family_name(family) for family in args.family]
+
+    if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no('Removing "{}"\nDo you want to continue'.format('", "'.join(families))):
+        for family in families:
+            gfontlibs.remove_family(family)
 
 
 def preview_command(args):
-    family = gfontlibs.resolve_family_name(args.family.replace("_", " "))
+    family = gfontlibs.resolve_family_name(args.family)
     fonts = gfontlibs.get_family_fonts(family)["manifest"]["fileRefs"]
 
     regular_font: dict | None = None
@@ -66,7 +70,10 @@ def preview_command(args):
 
 
 def webfont_command(args):
-    gfontlibs.pack_webfonts(args.family.replace("_", " "), args.dir)
+    families = [family for family in args.family]
+
+    for family in families:
+        gfontlibs.pack_webfonts(family, args.dir)
 
 
 def main():
@@ -105,7 +112,7 @@ def main():
         "-y", "--yes", action="store_true", help="Assume 'yes' as answer to all prompts and run non-interactively."
     )
     install_parser.add_argument("--no-cache", action="store_true", help="download the font again, even it is already downloaded")
-    install_parser.add_argument("family", help="Name of the font family (case-insensitive)")
+    install_parser.add_argument("family", action="extend", nargs="+", help="Name of the font family (case-insensitive)")
     install_parser.set_defaults(func=install_command)
 
     # remove sub-command
@@ -113,7 +120,7 @@ def main():
     remove_parser.add_argument(
         "-y", "--yes", action="store_true", help="Assume 'yes' as answer to all prompts and run non-interactively."
     )
-    remove_parser.add_argument("family", help="Name of the font family (case-insensitive)")
+    remove_parser.add_argument("family", action="extend", nargs="+", help="Name of the font family (case-insensitive)")
     remove_parser.set_defaults(func=remove_command)
 
     # preview sub-command
@@ -126,7 +133,7 @@ def main():
     webfont_parser = subparsers.add_parser("webfont", help="pack a font family to use in websites")
     webfont_parser.add_argument("--dir", required=True, help="directory to place the packed webfonts")
     webfont_parser.add_argument("--no-cache", action="store_true", help="download the font again, even it is already downloaded")
-    webfont_parser.add_argument("family", help="Name of the font family (case-insensitive)")
+    webfont_parser.add_argument("family", action="extend", nargs="+", help="Name of the font family (case-insensitive)")
     webfont_parser.set_defaults(func=webfont_command)
 
     args = argparser.parse_args()
