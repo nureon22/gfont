@@ -149,8 +149,6 @@ def main():
     if "func" in args:
         args.func(args)
 
-    print(args)
-
 
 if __name__ == "__main__":
     main()
