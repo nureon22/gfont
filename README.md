@@ -75,10 +75,10 @@ gfont remove "Noto Sans"
 gfont preview "Noto Sans"
 ```
 
-#### List only installed font families
+#### List installed font families
 
 ```sh
-gfont list --installed
+gfont list
 ```
 
 #### Pack a font family to use in websites as self-hosted fonts
