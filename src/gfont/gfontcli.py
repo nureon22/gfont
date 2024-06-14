@@ -16,9 +16,9 @@ def search_command(args):
 
 def info_command(args):
     if args.license:
-        print(gfontlibs.get_license_content(args.family))
+        print(gfontlibs.get_license_content(gfontlibs.resolve_family_name(args.family, True)))
     else:
-        print(gfontlibs.get_family_info(args.family, args.raw))
+        print(gfontlibs.get_family_info(gfontlibs.resolve_family_name(args.family, True), args.raw))
 
 
 def list_command(args):
@@ -40,7 +40,7 @@ def list_command(args):
 
 
 def install_command(args):
-    families = [gfontlibs.resolve_family_name(family) for family in args.family[0]]
+    families = [gfontlibs.resolve_family_name(family, True) for family in args.family[0]]
 
     if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no('Installing "{}"\nDo you want to continue'.format('", "'.join(families))):
         for family in families:
@@ -48,7 +48,7 @@ def install_command(args):
 
 
 def remove_command(args):
-    families = [gfontlibs.resolve_family_name(family) for family in args.family[0]]
+    families = [gfontlibs.resolve_family_name(family, True) for family in args.family[0]]
 
     if gfontlibs.IS_ASSUME_YES or gfontlibs.ask_yes_no('Removing "{}"\nDo you want to continue'.format('", "'.join(families))):
         for family in families:
@@ -56,7 +56,7 @@ def remove_command(args):
 
 
 def preview_command(args):
-    fonts = gfontlibs.get_family_fonts(args.family)["manifest"]["fileRefs"]
+    fonts = gfontlibs.get_family_fonts(gfontlibs.resolve_family_name(args.family, True))["manifest"]["fileRefs"]
 
     regular_font: dict | None = None
 
@@ -72,7 +72,7 @@ def webfont_command(args):
     families = [family for family in args.family[0]]
 
     for family in families:
-        gfontlibs.pack_webfonts(family, args.dir)
+        gfontlibs.pack_webfonts(gfontlibs.resolve_family_name(family, True), args.dir)
 
 
 def main():

@@ -191,10 +191,10 @@ def get_family_metadata(unsafe_family_name):
     return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
 
-def resolve_family_name(unsafe_family_name):
+def resolve_family_name(unsafe_family_name, exact=False):
     """Resolve a font family name contains (case-insensitive,underscore) to valid name"""
 
-    families = search_families([unsafe_family_name.replace("_", " ")])
+    families = search_families([unsafe_family_name.replace("_", " ")], exact)
 
     if len(families) == 0:
         __family_not_found(unsafe_family_name, True)
