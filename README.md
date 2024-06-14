@@ -62,13 +62,6 @@ gfont search "Noto Sans"
 gfont info "Noto Sans"
 ```
 
-#### View information of a font family in raw json format
-This will show all the information
-
-```sh
-gfont info --raw "Noto Sans"
-```
-
 #### Remove a installed font family
 
 ```sh
@@ -82,12 +75,6 @@ gfont remove "Noto Sans"
 gfont preview "Noto Sans"
 ```
 
-#### List all available font families
-
-```sh
-gfont list
-```
-
 #### List only installed font families
 
 ```sh
@@ -99,6 +86,9 @@ gfont list --installed
 ```sh
 gfont webfont "Noto Sans" --dir <dir>
 ```
+
+#### For mor information
+`gfont <command> --help`
 
 ### Related files and directories
 
