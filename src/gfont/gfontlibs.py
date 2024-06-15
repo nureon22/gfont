@@ -5,6 +5,7 @@ import re
 import shutil
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import (
     Dict,
     List,
@@ -36,6 +37,8 @@ LOG_COLORS = {
     "CRITICAL": "\033[35m",  # Purple
     "RESET": "\033[0m",
 }
+
+max_workers = 5
 
 
 def log(level: str, message: str, **kwargs):
@@ -304,10 +307,10 @@ def download_family(unsafe_family_name: str):
             file.write(manifest["contents"])
             file.close()
 
-    current = 1
     total = len(family_fonts["font_files"])
-    for font in family_fonts["font_files"]:
-        log("info", f"({current}/{total}) Downloading {font['filename']}")
+
+    def _download(font):
+        log("info", "({}/{}) Downloading {}".format(family_fonts["font_files"].index(font), total, font['filename']))
 
         status = download_font(font, os.path.join(dir, font["filename"]))
 
@@ -318,7 +321,9 @@ def download_family(unsafe_family_name: str):
         elif status == "cached":
             cached.append(font)
 
-        current = current + 1
+    with ThreadPoolExecutor(max_workers) as executor:
+        futures = [executor.submit(_download, font) for font in family_fonts["font_files"]]
+        [future.result() for future in as_completed(futures)]
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
@@ -417,19 +422,20 @@ def pack_webfonts(unsafe_family_name: str, dir: str):
     fonts = re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)
     fonts = list(set(fonts))
 
-    current = 1
     total = len(fonts)
 
     successed = []
     failed = []
     cached = []
 
-    for font in fonts:
+    def _download(font):
+        nonlocal webfonts_css
+
         filename = os.path.basename(font)
         filepath = os.path.join(dir, nospace_family_name, "fonts", filename)
         webfonts_css = webfonts_css.replace(font, f"fonts/{filename}")
 
-        log("info", f"({current}/{total}) Downloading {font}")
+        log("info", "({}/{}) Downloading {}".format(fonts.index(font), total, font))
 
         status = download_font({"filename": filename, "url": font}, filepath)
 
@@ -440,7 +446,9 @@ def pack_webfonts(unsafe_family_name: str, dir: str):
         elif status == "cached":
             cached.append(font)
 
-        current = current + 1
+    with ThreadPoolExecutor(max_workers) as executor:
+        futures = [executor.submit(_download, font) for font in fonts]
+        [future.result() for future in as_completed(futures)]
 
     with open(os.path.join(dir, nospace_family_name, nospace_family_name + ".css"), "w") as file:
         file.write(webfonts_css)
