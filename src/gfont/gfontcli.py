@@ -56,7 +56,7 @@ def remove_command(args):
 
 
 def preview_command(args):
-    fonts = libs.get_family_fonts(libs.resolve_family_name(args.family, True))["manifest"]["fileRefs"]
+    fonts = libs.get_family_fonts(libs.resolve_family_name(args.family, True))["font_files"]
 
     regular_font: dict | None = None
 

@@ -5,6 +5,11 @@ import re
 import shutil
 import sys
 import time
+from typing import (
+    Dict,
+    List,
+    Optional,
+)
 
 import requests
 
@@ -33,12 +38,11 @@ LOG_COLORS = {
 }
 
 
-def log(level, message, **kwargs):
-    level = level.upper()
-    print(f"{LOG_COLORS[level]}{message}{LOG_COLORS['RESET']}", **kwargs)
+def log(level: str, message: str, **kwargs):
+    print(f"{LOG_COLORS[level.upper()]}{message}{LOG_COLORS['RESET']}", **kwargs)
 
 
-def ask_yes_no(question):
+def ask_yes_no(question: str) -> bool:
     while True:
         answer = input(f"{question} [y|N] ").upper().strip()[0]
         if answer == "":
@@ -56,46 +60,42 @@ def __family_not_found(family_name, exit=True):
         sys.exit(1)
 
 
-def download_available_families_list():
-    """Download all available font family names to specified filepath"""
-
-    res = requests.get(url="https://fonts.google.com/metadata/fonts")
-
-    if res.status_code != 200:
-        log("error", f"Request to '{res.url}' failed. {res.reason}")
-        sys.exit(1)
-
-    os.makedirs(os.path.dirname(cache_file), exist_ok=True)
-
-    families = [family_metadata["family"] for family_metadata in json.loads(res.text)["familyMetadataList"]]
-
-    with open(cache_file, "w") as file:
-        file.write(json.dumps(families))
-        file.close()
-
-
-def get_available_families():
+def get_available_families() -> List[str]:
     """Get all available font family names"""
 
+    refresh = False
+
     if os.path.isfile(cache_file):
-        age = time.time() - os.stat(cache_file).st_mtime
-
-        # if fonts_metadata_file is older than 30 days, download again.
-        if age > 3600 * 24 * 30:
-            download_available_families_list()
+        # if fonts_metadata_file is older than 30 days, refresh it
+        refresh = (time.time() - os.path.getmtime(cache_file)) > 3600 * 24 * 30
     else:
-        download_available_families_list()
+        refresh = True
 
-    content = ""
+    families = None
 
-    with open(cache_file, "r") as file:
-        content = file.read()
-        file.close()
+    if refresh:
+        res = requests.get(url="https://fonts.google.com/metadata/fonts")
 
-    return json.loads(content)
+        if res.status_code != 200:
+            log("error", f"Request to '{res.url}' failed. {res.reason}")
+            sys.exit(1)
+
+        os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+
+        families = [family_metadata["family"] for family_metadata in json.loads(res.text)["familyMetadataList"]]
+
+        with open(cache_file, "w") as file:
+            file.write(json.dumps(families))
+            file.close()
+    else:
+        with open(cache_file, "r") as file:
+            families = json.loads(file.read())
+            file.close()
+
+    return families
 
 
-def get_family_fonts(unsafe_family_name):
+def get_family_fonts(unsafe_family_name: str) -> Dict[str, List[Dict]]:
     "Get list of files (including manifest files) contains in a font family"
 
     family = resolve_family_name(unsafe_family_name)
@@ -109,10 +109,15 @@ def get_family_fonts(unsafe_family_name):
     # https://fonts.google.com/download/list?family={family} return )]}' at the
     # beginning of the response. I don't know why. But this will make json parser
     # to fail.
-    return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+    data = json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+
+    return {
+        "manifest_files": data["manifest"]["files"],
+        "font_files": data["manifest"]["fileRefs"],
+    }
 
 
-def get_family_webfonts_css(unsafe_family_metadata):
+def get_family_webfonts_css(unsafe_family_metadata: str) -> str:
     """Return CSS content of a font family"""
 
     family_metadata = get_family_metadata(unsafe_family_metadata)
@@ -121,16 +126,17 @@ def get_family_webfonts_css(unsafe_family_metadata):
 
     if "fonts" in family_metadata:
         fonts = family_metadata["fonts"].keys()
-        normalfonts = []
-        italicfonts = []
+        finalfonts = []
 
         for font in fonts:
             if font.endswith("i"):
-                italicfonts.append("1," + font[:-1])
+                finalfonts.append("1," + font[:-1])
             else:
-                normalfonts.append("0," + font)
+                finalfonts.append("0," + font)
 
-        url = url + ":ital,wght@" + ";".join([*normalfonts, *italicfonts])
+        finalfonts.sort()
+
+        url = url + ":ital,wght@" + ";".join(finalfonts)
 
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     res = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0"})
@@ -142,7 +148,7 @@ def get_family_webfonts_css(unsafe_family_metadata):
     return res.text
 
 
-def search_families(keywords, exact=False):
+def search_families(keywords: List[str], exact: bool = False) -> List[str]:
     """Search font families contain given keywords.
 
     :param exact - if True, given keywords will be directly compare to name of the font family. But still case-insensitive.
@@ -171,7 +177,7 @@ def search_families(keywords, exact=False):
     return results
 
 
-def get_family_metadata(unsafe_family_name):
+def get_family_metadata(unsafe_family_name: str) -> Dict:
     """Get metadata of a specific font family
 
     :return - Return a dict contains metadata of a font family
@@ -191,8 +197,11 @@ def get_family_metadata(unsafe_family_name):
     return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
 
-def resolve_family_name(unsafe_family_name, exact=False):
+def resolve_family_name(unsafe_family_name: str, exact: bool = False) -> str:
     """Resolve a font family name contains (case-insensitive,underscore) to valid name"""
+
+    if unsafe_family_name in get_available_families():
+        return unsafe_family_name
 
     families = search_families([unsafe_family_name.replace("_", " ")], exact)
 
@@ -202,16 +211,13 @@ def resolve_family_name(unsafe_family_name, exact=False):
     return families[0]
 
 
-def get_family_info(unsafe_family_name, isRaw=False):
+def get_family_info(unsafe_family_name: str, isRaw: bool = False) -> str:
     """Get metadata of a specific font family in pretty print format
 
     :param isRaw: if True, return is raw json format (contains extra informations)
     """
 
     family_metadata = get_family_metadata(unsafe_family_name)
-
-    if family_metadata is None:
-        __family_not_found(unsafe_family_name, True)
 
     content = ""
 
@@ -232,10 +238,10 @@ def get_family_info(unsafe_family_name, isRaw=False):
     return content
 
 
-def download_font(font, filepath, retries=5):
+def download_font(font: Dict, filepath: str, retries: int = 5):
     """Download the given font, not complete set of font family.
 
-    :param font: dictionary that hold information of a font, much contains 'filename' and 'url' properties.
+    :param font: dictionary that hold information of a font, should contains 'filename' and 'url' properties.
     :param retries: number of retries if downloading the font failed
     """
 
@@ -277,13 +283,10 @@ def download_font(font, filepath, retries=5):
     return "success"
 
 
-def download_family(unsafe_family_name):
+def download_family(unsafe_family_name: str):
     """Download complete set of given font family"""
 
     family_metadata = get_family_metadata(unsafe_family_name)
-
-    if family_metadata is None:
-        __family_not_found(unsafe_family_name, True)
 
     family = family_metadata["family"]
 
@@ -291,31 +294,29 @@ def download_family(unsafe_family_name):
     os.makedirs(dir, exist_ok=True)
 
     family_fonts = get_family_fonts(family)
-    manifest_files = family_fonts["manifest"]["files"]
-    font_files = family_fonts["manifest"]["fileRefs"]
 
     successed = []
     cached = []
     failed = []
 
-    for manifest in manifest_files:
+    for manifest in family_fonts["manifest_files"]:
         with open(os.path.join(dir, manifest["filename"]), "w") as file:
             file.write(manifest["contents"])
             file.close()
 
     current = 1
-    total = len(font_files)
-    for font in font_files:
+    total = len(family_fonts["font_files"])
+    for font in family_fonts["font_files"]:
         log("info", f"({current}/{total}) Downloading {font['filename']}")
 
         status = download_font(font, os.path.join(dir, font["filename"]))
 
         if status == "success":
             successed.append(font)
+        elif status == "failed":
+            failed.append(font)
         elif status == "cached":
             cached.append(font)
-        else:
-            failed.append(font)
 
         current = current + 1
 
@@ -326,7 +327,7 @@ def download_family(unsafe_family_name):
     log("info", "Installation '{}' finished.".format(family))
 
 
-def remove_family(unsafe_family_name):
+def remove_family(unsafe_family_name: str):
     """Remove already installed font family. If given font family wasn't installed yet, do nothing."""
 
     family = resolve_family_name(unsafe_family_name)
@@ -341,7 +342,7 @@ def remove_family(unsafe_family_name):
         log("info", "Removing '{}' finished".format(family))
 
 
-def get_installed_families():
+def get_installed_families() -> List[str]:
     """Get installed font families"""
 
     families = []
@@ -354,20 +355,20 @@ def get_installed_families():
     return families
 
 
-def get_license_content(unsafe_family_family):
+def get_license_content(unsafe_family_name: str) -> str:
     """
     Get license of a font family. Not just license name, including its contents.
     """
-    family_fonts = get_family_fonts(unsafe_family_family)
+    family_fonts = get_family_fonts(unsafe_family_name)
 
-    for manifest in family_fonts["manifest"]["files"]:
+    for manifest in family_fonts["manifest__files"]:
         if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
             return manifest["contents"]
 
     return "License not found"
 
 
-def preview_font(font, preview_text=None, font_size=48):
+def preview_font(font: Dict, preview_text: Optional[str] = None, font_size: int = 48):
     """
     Preview the given font using imagemagick
     """
@@ -393,7 +394,7 @@ def preview_font(font, preview_text=None, font_size=48):
         log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
 
-def split_long_text(text, max_words_count):
+def split_long_text(text: str, max_words_count: int):
     """
     Add line break at every {max_words_count} words
     """
@@ -408,7 +409,7 @@ def split_long_text(text, max_words_count):
     return result
 
 
-def pack_webfonts(unsafe_family_name, dir):
+def pack_webfonts(unsafe_family_name: str, dir: str):
     family_metadata = get_family_metadata(unsafe_family_name)
     webfonts_css = get_family_webfonts_css(family_metadata["family"])
     nospace_family_name = family_metadata["family"].replace(" ", "_")
@@ -436,7 +437,7 @@ def pack_webfonts(unsafe_family_name, dir):
             successed.append(font)
         elif status == "failed":
             failed.append(font)
-        else:
+        elif status == "cached":
             cached.append(font)
 
         current = current + 1
