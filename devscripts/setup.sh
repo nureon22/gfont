@@ -10,6 +10,6 @@ pip install -U pip
 
 pip install -U poetry
 
-poetry install
+poetry install --no-root
 
 pre-commit install
