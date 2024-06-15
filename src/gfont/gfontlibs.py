@@ -41,11 +41,18 @@ LOG_COLORS = {
 max_workers = 5
 
 
+def instance_check(value, instance, message):
+    if not isinstance(value, instance):
+        raise TypeError(message)
+
+
 def log(level: str, message: str, **kwargs):
     print(f"{LOG_COLORS[level.upper()]}{message}{LOG_COLORS['RESET']}", **kwargs)
 
 
 def ask_yes_no(question: str) -> bool:
+    instance_check(question, str, "First argument 'question' must be 'str'")
+
     while True:
         answer = input(f"{question} [y|N] ").upper().strip()[0]
         if answer == "":
@@ -101,6 +108,8 @@ def get_available_families() -> List[str]:
 def get_family_fonts(unsafe_family_name: str) -> Dict[str, List[Dict]]:
     "Get list of files (including manifest files) contains in a font family"
 
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+
     family = resolve_family_name(unsafe_family_name)
 
     res = requests.get(f"https://fonts.google.com/download/list?family={family}")
@@ -120,10 +129,12 @@ def get_family_fonts(unsafe_family_name: str) -> Dict[str, List[Dict]]:
     }
 
 
-def get_family_webfonts_css(unsafe_family_metadata: str) -> str:
+def get_family_webfonts_css(unsafe_family_name: str) -> str:
     """Return CSS content of a font family"""
 
-    family_metadata = get_family_metadata(unsafe_family_metadata)
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+
+    family_metadata = get_family_metadata(unsafe_family_name)
 
     url = f"https://fonts.googleapis.com/css2?family={family_metadata['family'].replace(' ', '+')}"
 
@@ -158,6 +169,9 @@ def search_families(keywords: List[str], exact: bool = False) -> List[str]:
     :return - Return a list contains font family names
     """
 
+    instance_check(keywords, List, "First argument 'keywords' must be 'List'")
+    instance_check(exact, bool, "Second argument 'exact' must be 'bool'")
+
     results = []
 
     for family in get_available_families():
@@ -165,6 +179,8 @@ def search_families(keywords: List[str], exact: bool = False) -> List[str]:
         family_lower = family.lower()
 
         for keyword in keywords:
+            instance_check(keyword, str, "First argument 'keywords' must be 'List[str]'")
+
             keyword = keyword.replace("  ", "").strip().lower()
 
             if exact:
@@ -186,6 +202,8 @@ def get_family_metadata(unsafe_family_name: str) -> Dict:
     :return - Return a dict contains metadata of a font family
     """
 
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+
     family = resolve_family_name(unsafe_family_name)
 
     res = requests.get(f"https://fonts.google.com/metadata/fonts/{family}")
@@ -203,6 +221,9 @@ def get_family_metadata(unsafe_family_name: str) -> Dict:
 def resolve_family_name(unsafe_family_name: str, exact: bool = False) -> str:
     """Resolve a font family name contains (case-insensitive,underscore) to valid name"""
 
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    instance_check(exact, bool, "Second argument 'exact' must be 'bool'")
+
     if unsafe_family_name in get_available_families():
         return unsafe_family_name
 
@@ -219,6 +240,9 @@ def get_family_info(unsafe_family_name: str, isRaw: bool = False) -> str:
 
     :param isRaw: if True, return is raw json format (contains extra informations)
     """
+
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    instance_check(isRaw, bool, "Second argument 'isRaw' must be 'bool'")
 
     family_metadata = get_family_metadata(unsafe_family_name)
 
@@ -247,6 +271,10 @@ def download_font(font: Dict, filepath: str, retries: int = 5):
     :param font: dictionary that hold information of a font, should contains 'filename' and 'url' properties.
     :param retries: number of retries if downloading the font failed
     """
+
+    instance_check(font, Dict, "First argument 'font' must be 'Dict'")
+    instance_check(filepath, str, "Second argument 'filepath' must be 'str'")
+    instance_check(retries, int, "Third argument 'retries' must be 'int'")
 
     if not IS_NO_CACHE:
         if os.path.isfile(filepath):
@@ -288,6 +316,8 @@ def download_font(font: Dict, filepath: str, retries: int = 5):
 
 def download_family(unsafe_family_name: str):
     """Download complete set of given font family"""
+
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
 
     family_metadata = get_family_metadata(unsafe_family_name)
 
@@ -335,6 +365,8 @@ def download_family(unsafe_family_name: str):
 def remove_family(unsafe_family_name: str):
     """Remove already installed font family. If given font family wasn't installed yet, do nothing."""
 
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+
     family = resolve_family_name(unsafe_family_name)
     dir = os.path.join(fonts_dir, family.replace(" ", "_"))
 
@@ -364,6 +396,9 @@ def get_license_content(unsafe_family_name: str) -> str:
     """
     Get license of a font family. Not just license name, including its contents.
     """
+
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+
     family_fonts = get_family_fonts(unsafe_family_name)
 
     for manifest in family_fonts["manifest__files"]:
@@ -378,8 +413,14 @@ def preview_font(font: Dict, preview_text: Optional[str] = None, font_size: int 
     Preview the given font using imagemagick
     """
 
-    if not preview_text:
+    instance_check(font, Dict, "First argument 'font' must be 'Dict'")
+
+    if preview_text is None:
         preview_text = "Whereas disregard and contempt\nfor human rights have resulted "
+    else:
+        instance_check(preview_text, str, "Second argument 'preview_text' must be None or type 'str'")
+
+    instance_check(font_size, int, "Third argument 'font_size' must be 'int'")
 
     preview_text = split_long_text(preview_text, 8)
 
@@ -404,6 +445,9 @@ def split_long_text(text: str, max_words_count: int):
     Add line break at every {max_words_count} words
     """
 
+    instance_check(text, str, "First argument 'text' must be 'str'")
+    instance_check(max_words_count, int, "Second argument 'max_words_count' must be 'int'")
+
     result = ""
 
     words = text.split(" ")
@@ -415,6 +459,11 @@ def split_long_text(text: str, max_words_count: int):
 
 
 def pack_webfonts(unsafe_family_name: str, dir: str):
+    """Pack a font family to use in websites as self-hosted fonts"""
+
+    instance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    instance_check(dir, str, "Second argument 'dir' must be 'str'")
+
     family_metadata = get_family_metadata(unsafe_family_name)
     webfonts_css = get_family_webfonts_css(family_metadata["family"])
     nospace_family_name = family_metadata["family"].replace(" ", "_")
