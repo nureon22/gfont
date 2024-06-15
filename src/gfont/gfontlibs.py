@@ -310,7 +310,7 @@ def download_family(unsafe_family_name: str):
     total = len(family_fonts["font_files"])
 
     def _download(font):
-        log("info", "({}/{}) Downloading {}".format(family_fonts["font_files"].index(font), total, font['filename']))
+        log("info", "({}/{}) Downloading {}".format(family_fonts["font_files"].index(font) + 1, total, font['filename']))
 
         status = download_font(font, os.path.join(dir, font["filename"]))
 
@@ -435,7 +435,7 @@ def pack_webfonts(unsafe_family_name: str, dir: str):
         filepath = os.path.join(dir, nospace_family_name, "fonts", filename)
         webfonts_css = webfonts_css.replace(font, f"fonts/{filename}")
 
-        log("info", "({}/{}) Downloading {}".format(fonts.index(font), total, font))
+        log("info", "({}/{}) Downloading {}".format(fonts.index(font) + 1, total, font))
 
         status = download_font({"filename": filename, "url": font}, filepath)
 
