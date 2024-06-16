@@ -12,22 +12,25 @@ from typing import (
     Optional,
 )
 
-import requests
+from requests import request
 
 from . import utils
 
 system_platform = platform.system()
 
 if system_platform == "Linux":
-    cache_file = os.path.expanduser("~/.cache/gfont/families.json")
-    fonts_dir = os.path.expanduser("~/.local/share/fonts/gfont")
+    FONTS_DIR = os.path.expanduser("~/.local/share/fonts/gfont")
+    CACHE_DIR = os.path.expanduser("~/.cache/gfont")
+    CACHE_FILE = os.path.join(CACHE_DIR, "families.json")
 elif system_platform == "Darwin":
-    cache_file = os.path.expanduser("~/Library/Caches/gfont/families.json")
-    fonts_dir = os.path.expanduser("~/Library/Fonts/gfont")
+    FONTS_DIR = os.path.expanduser("~/Library/Fonts/gfont")
+    CACHE_DIR = os.path.expanduser("~/Library/Caches/gfont")
+    CACHE_FILE = os.path.join(CACHE_DIR, "families.json")
 else:
     raise Exception("You system is not supported yet")
 
 
+REQUEST_TIMEOUT = 10
 IS_ASSUME_YES = False
 IS_NO_CACHE = False
 MAX_WORKERS = 4
@@ -40,9 +43,9 @@ def get_available_families() -> List[str]:
 
     refresh = False
 
-    if os.path.isfile(cache_file):
+    if os.path.isfile(CACHE_FILE):
         # if fonts_metadata_file is older than 30 days, refresh it
-        refresh = (time.time() - os.path.getmtime(cache_file)) > 3600 * 24 * 30
+        refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > 3600 * 24 * 30
     else:
         refresh = True
 
@@ -50,19 +53,19 @@ def get_available_families() -> List[str]:
 
     if refresh:
         utils.log("info", "Fetching 'https://fonts.google.com/metadata/fonts'")
-        res = requests.get(url="https://fonts.google.com/metadata/fonts", timeout=10)
+        res = request("GET", "https://fonts.google.com/metadata/fonts", timeout=REQUEST_TIMEOUT)
 
         if res.status_code != 200:
             utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
             sys.exit(1)
 
-        os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+        os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
 
         families = [family_metadata["family"] for family_metadata in json.loads(res.text)["familyMetadataList"]]
 
-        utils.write_file(cache_file, json.dumps(families))
+        utils.write_file(CACHE_FILE, json.dumps(families))
     else:
-        families = json.loads(utils.read_file(cache_file))  # type: ignore
+        families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
 
     return families
 
@@ -75,11 +78,11 @@ def get_family_files(family: str) -> List[List[Dict]]:
     family = resolve_family_name(family)
 
     utils.log("info", f"Fetching 'https://fonts.google.com/download/list?family={family}'")
-    res = requests.get(f"https://fonts.google.com/download/list?family={family}", timeout=10)
+    res = request("GET", f"https://fonts.google.com/download/list?family={family}", timeout=REQUEST_TIMEOUT)
 
     if res.status_code != 200:
         utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
-        sys.exit()
+        sys.exit(1)
 
     # https://fonts.google.com/download/list?family={family} return )]}' at the
     # beginning of the response. I don't know why. But this will make json parser
@@ -115,7 +118,7 @@ def get_family_webfonts_css(family: str) -> str:
 
     utils.log("info", f"Fetching '{url}'")
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
-    res = requests.get(url, headers={"User-Agent": BROWSER_USER_AGENT}, timeout=10)
+    res = request("GET", url, headers={"User-Agent": BROWSER_USER_AGENT}, timeout=REQUEST_TIMEOUT)
 
     if res.status_code != 200:
         utils.log("error", f"Request to {res.url} failed. {res.reason}")
@@ -169,11 +172,11 @@ def get_family_metadata(family: str) -> Dict:
     family = resolve_family_name(family)
 
     utils.log("info", f"Fetching 'https://fonts.google.com/metadata/fonts/{family}'")
-    res = requests.get(f"https://fonts.google.com/metadata/fonts/{family}", timeout=10)
+    res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
 
     if res.status_code != 200:
         utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
-        sys.exit()
+        sys.exit(1)
 
     # "https://fonts.google.com/metadata/fonts/{family}" return )]}' at the
     # beginning of the response. I don't know why. But this will make json parser
@@ -244,7 +247,7 @@ def download_fonts(fonts: List[Dict], dir: str):
     def _download(font):
         utils.log("info", f"({fonts.index(font) + 1}/{len(fonts)}) Downloading {font['url']}")
 
-        state = utils.download_file(font["url"], f"{dir}/{font['filename']}", 5, (0 if IS_NO_CACHE else FONT_CACHE_AGE))
+        state = utils.download_file(font["url"], f"{dir}/{font['filename']}", (0 if IS_NO_CACHE else FONT_CACHE_AGE))
 
         if state == "successed":
             successed.append(font)
@@ -268,7 +271,7 @@ def download_family(family: str):
     family = resolve_family_name(family)
     [manifest_files, font_files] = get_family_files(family)
 
-    dir = os.path.join(fonts_dir, family.replace(" ", "_"))
+    dir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
 
     for manifest in manifest_files:
         utils.write_file(f"{dir}/{manifest['filename']}", manifest["contents"])
@@ -288,7 +291,7 @@ def remove_family(family: str):
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
     family = resolve_family_name(family)
-    dir = os.path.join(fonts_dir, family.replace(" ", "_"))
+    dir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
 
     if os.path.isdir(dir):
         shutil.rmtree(dir)
@@ -304,7 +307,7 @@ def get_installed_families() -> List[str]:
 
     families = []
 
-    for dir in os.listdir(fonts_dir) if os.path.isdir(fonts_dir) else []:
+    for dir in os.listdir(FONTS_DIR) if os.path.isdir(FONTS_DIR) else []:
         if not dir.startswith("."):
             family = dir.replace("_", " ")
             families.append(family)
