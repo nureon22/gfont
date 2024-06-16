@@ -223,27 +223,14 @@ def download_fonts(fonts: List[Dict], dir: str):
     utils.isinstance_check(fonts, List, "First argument 'font' must be 'List'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
 
-    successed = []
-    cached = []
-    failed = []
-
     def _download(font):
         utils.log("info", f"({fonts.index(font) + 1}/{len(fonts)}) Downloading {font['url']}")
 
-        state = utils.download_file(font["url"], f"{dir}/{font['filename']}", (0 if IS_NO_CACHE else FONT_CACHE_AGE))
-
-        if state == "successed":
-            successed.append(font)
-        elif state == "cached":
-            cached.append(font)
-        elif state == "failed":
-            failed.append(font)
+        utils.download_file(font["url"], f"{dir}/{font['filename']}", (0 if IS_NO_CACHE else FONT_CACHE_AGE))
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = as_completed([executor.submit(_download, font) for font in fonts])
         [future.result() for future in futures]
-
-    return [successed, cached, failed]
 
 
 def download_family(family: str):
@@ -259,12 +246,11 @@ def download_family(family: str):
     for manifest in manifest_files:
         utils.write_file(f"{dir}/{manifest['filename']}", manifest["contents"])
 
-    [successed, cached, failed] = download_fonts(font_files, dir)
+    download_fonts(font_files, dir)
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
 
-    utils.log("info", f"Success {len(successed) + len(cached)} Failed {len(failed)} Cached {len(cached)}")
     utils.log("info", "Installation '{}' finished.".format(family))
 
 
@@ -358,10 +344,9 @@ def pack_webfonts(family: str, dir: str):
     woff_fonts = list(set(re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)))
     fonts = [{"url": font, "filename": os.path.basename(font)} for font in woff_fonts]
 
-    [successed, cached, failed] = download_fonts(fonts, f"{subdir}/fonts")
+    download_fonts(fonts, f"{subdir}/fonts")
 
     webfonts_css = re.sub(r"https://fonts.gstatic.com/.+/", "fonts/", webfonts_css)
     utils.write_file(f"{subdir}/{family.replace(' ', '_')}.css", webfonts_css)
 
-    utils.log("info", f"Success {len(successed) + len(cached)} Failed {len(failed)} Cached {len(cached)}")
     utils.log("info", "Packing webfonts finished.")
