@@ -35,7 +35,6 @@ def get_available_families() -> List[str]:
     families = None
 
     if refresh:
-        utils.log("info", "Fetching 'https://fonts.google.com/metadata/fonts'")
         res = request("GET", "https://fonts.google.com/metadata/fonts", timeout=REQUEST_TIMEOUT)
 
         if res.status_code != 200:
@@ -60,7 +59,6 @@ def get_family_files(family: str) -> List[List[Dict]]:
 
     family = resolve_family_name(family)
 
-    utils.log("info", f"Fetching 'https://fonts.google.com/download/list?family={family}'")
     res = request("GET", f"https://fonts.google.com/download/list?family={family}", timeout=REQUEST_TIMEOUT)
 
     if res.status_code != 200:
@@ -99,7 +97,6 @@ def get_family_webfonts_css(family: str) -> str:
 
         url = url + ":ital,wght@" + ";".join(finalfonts)
 
-    utils.log("info", f"Fetching '{url}'")
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     res = request("GET", url, headers={"User-Agent": BROWSER_USER_AGENT}, timeout=REQUEST_TIMEOUT)
 
@@ -154,7 +151,6 @@ def get_family_metadata(family: str) -> Dict:
 
     family = resolve_family_name(family)
 
-    utils.log("info", f"Fetching 'https://fonts.google.com/metadata/fonts/{family}'")
     res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
 
     if res.status_code != 200:
