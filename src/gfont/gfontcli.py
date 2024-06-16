@@ -18,7 +18,7 @@ def info_command(args):
     if args.license:
         print(libs.get_license_content(libs.resolve_family_name(args.family, True)))
     else:
-        print(libs.get_family_info(libs.resolve_family_name(args.family, True), args.raw))
+        print(libs.get_printable_family_info(libs.resolve_family_name(args.family, True), args.raw))
 
 
 def list_command(args):
@@ -56,7 +56,7 @@ def remove_command(args):
 
 
 def preview_command(args):
-    fonts = libs.get_family_fonts(libs.resolve_family_name(args.family, True))["font_files"]
+    fonts = libs.get_family_files(libs.resolve_family_name(args.family, True))[1]
 
     regular_font: dict | None = None
 

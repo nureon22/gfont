@@ -30,8 +30,9 @@ else:
 
 IS_ASSUME_YES = False
 IS_NO_CACHE = False
-
-max_workers = 5
+MAX_WORKERS = 4
+FONT_CACHE_AGE = 3600 * 24 * 30
+BROWSER_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0"
 
 
 def get_available_families() -> List[str]:
@@ -48,7 +49,8 @@ def get_available_families() -> List[str]:
     families = None
 
     if refresh:
-        res = requests.get(url="https://fonts.google.com/metadata/fonts")
+        utils.log("info", "Fetching 'https://fonts.google.com/metadata/fonts'")
+        res = requests.get(url="https://fonts.google.com/metadata/fonts", timeout=10)
 
         if res.status_code != 200:
             utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
@@ -58,25 +60,22 @@ def get_available_families() -> List[str]:
 
         families = [family_metadata["family"] for family_metadata in json.loads(res.text)["familyMetadataList"]]
 
-        with open(cache_file, "w") as file:
-            file.write(json.dumps(families))
-            file.close()
+        utils.write_file(cache_file, json.dumps(families))
     else:
-        with open(cache_file, "r") as file:
-            families = json.loads(file.read())
-            file.close()
+        families = json.loads(utils.read_file(cache_file))  # type: ignore
 
     return families
 
 
-def get_family_fonts(unsafe_family_name: str) -> Dict[str, List[Dict]]:
+def get_family_files(family: str) -> List[List[Dict]]:
     "Get list of files (including manifest files) contains in a font family"
 
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family = resolve_family_name(unsafe_family_name)
+    family = resolve_family_name(family)
 
-    res = requests.get(f"https://fonts.google.com/download/list?family={family}")
+    utils.log("info", f"Fetching 'https://fonts.google.com/download/list?family={family}'")
+    res = requests.get(f"https://fonts.google.com/download/list?family={family}", timeout=10)
 
     if res.status_code != 200:
         utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
@@ -87,23 +86,21 @@ def get_family_fonts(unsafe_family_name: str) -> Dict[str, List[Dict]]:
     # to fail.
     data = json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
-    return {
-        "manifest_files": data["manifest"]["files"],
-        "font_files": data["manifest"]["fileRefs"],
-    }
+    return [data["manifest"]["files"], data["manifest"]["fileRefs"]]
 
 
-def get_family_webfonts_css(unsafe_family_name: str) -> str:
+def get_family_webfonts_css(family: str) -> str:
     """Return CSS content of a font family"""
 
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family_metadata = get_family_metadata(unsafe_family_name)
+    family = resolve_family_name(family)
+    metadata = get_family_metadata(family)
 
-    url = f"https://fonts.googleapis.com/css2?family={family_metadata['family'].replace(' ', '+')}"
+    url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
 
-    if "fonts" in family_metadata:
-        fonts = family_metadata["fonts"].keys()
+    if "fonts" in metadata:
+        fonts = metadata["fonts"].keys()
         finalfonts = []
 
         for font in fonts:
@@ -116,8 +113,9 @@ def get_family_webfonts_css(unsafe_family_name: str) -> str:
 
         url = url + ":ital,wght@" + ";".join(finalfonts)
 
+    utils.log("info", f"Fetching '{url}'")
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
-    res = requests.get(url, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0"})
+    res = requests.get(url, headers={"User-Agent": BROWSER_USER_AGENT}, timeout=10)
 
     if res.status_code != 200:
         utils.log("error", f"Request to {res.url} failed. {res.reason}")
@@ -160,17 +158,18 @@ def search_families(keywords: List[str], exact: bool = False) -> List[str]:
     return results
 
 
-def get_family_metadata(unsafe_family_name: str) -> Dict:
+def get_family_metadata(family: str) -> Dict:
     """Get metadata of a specific font family
 
     :return - Return a dict contains metadata of a font family
     """
 
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family = resolve_family_name(unsafe_family_name)
+    family = resolve_family_name(family)
 
-    res = requests.get(f"https://fonts.google.com/metadata/fonts/{family}")
+    utils.log("info", f"Fetching 'https://fonts.google.com/metadata/fonts/{family}'")
+    res = requests.get(f"https://fonts.google.com/metadata/fonts/{family}", timeout=10)
 
     if res.status_code != 200:
         utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
@@ -182,33 +181,33 @@ def get_family_metadata(unsafe_family_name: str) -> Dict:
     return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
 
-def resolve_family_name(unsafe_family_name: str, exact: bool = False) -> str:
+def resolve_family_name(family: str, exact: bool = False) -> str:
     """Resolve a font family name contains (case-insensitive,underscore) to valid name"""
 
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(exact, bool, "Second argument 'exact' must be 'bool'")
 
-    if unsafe_family_name in get_available_families():
-        return unsafe_family_name
+    if family in get_available_families():
+        return family
 
-    families = search_families([unsafe_family_name.replace("_", " ")], exact)
+    families = search_families([family.replace("_", " ")], exact)
 
     if len(families) == 0:
-        utils.family_not_found(unsafe_family_name, True)
+        utils.family_not_found(family, True)
 
     return families[0]
 
 
-def get_family_info(unsafe_family_name: str, isRaw: bool = False) -> str:
+def get_printable_family_info(family: str, isRaw: bool = False) -> str:
     """Get metadata of a specific font family in pretty print format
 
     :param isRaw: if True, return is raw json format (contains extra informations)
     """
 
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(isRaw, bool, "Second argument 'isRaw' must be 'bool'")
 
-    family_metadata = get_family_metadata(unsafe_family_name)
+    family_metadata = get_family_metadata(family)
 
     content = ""
 
@@ -229,95 +228,52 @@ def get_family_info(unsafe_family_name: str, isRaw: bool = False) -> str:
     return content
 
 
-def download_font(font: Dict, filepath: str, retries: int = 5):
+def download_fonts(fonts: List[Dict], dir: str):
     """Download the given font, not complete set of font family.
 
     :param font: dictionary that hold information of a font, should contains 'filename' and 'url' properties.
-    :param retries: number of retries if downloading the font failed
     """
 
-    utils.isinstance_check(font, Dict, "First argument 'font' must be 'Dict'")
-    utils.isinstance_check(filepath, str, "Second argument 'filepath' must be 'str'")
-    utils.isinstance_check(retries, int, "Third argument 'retries' must be 'int'")
-
-    if not IS_NO_CACHE:
-        if os.path.isfile(filepath):
-            age = time.time() - os.stat(filepath).st_mtime
-
-            # if download font file is older than 30 days, download it again
-            if age < 3600 * 24 * 30:
-                time.sleep(0.1)
-                return "cached"
-
-    need_retry = False
-
-    try:
-        res = requests.get(font["url"], timeout=10)
-
-        if res.status_code == 200:
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            with open(filepath, "wb") as file:
-                file.write(res.content)
-                file.close()
-        else:
-            utils.log("error", f"Downloading {font['url']} -> {font['filename']} failed. {res.reason}")
-            need_retry = True
-
-    except Exception as exception:
-        utils.log("error", f"Downloading {font['url']} -> {font['filename']} failed. {exception} ")
-        need_retry = True
-
-    if need_retry:
-        if retries > 0:
-            utils.log("warning", f"Retrying {font['url']} -> {font['filename']}")
-            download_font(font, filepath, retries - 1)
-        else:
-            utils.log("warning", f"Skipping {font['url']} -> {font['filename']}")
-            return "failed"
-
-    return "success"
-
-
-def download_family(unsafe_family_name: str):
-    """Download complete set of given font family"""
-
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
-
-    family_metadata = get_family_metadata(unsafe_family_name)
-
-    family = family_metadata["family"]
-
-    dir = os.path.join(fonts_dir, family.replace(" ", "_"))
-    os.makedirs(dir, exist_ok=True)
-
-    family_fonts = get_family_fonts(family)
+    utils.isinstance_check(fonts, List, "First argument 'font' must be 'List'")
+    utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
 
     successed = []
     cached = []
     failed = []
 
-    for manifest in family_fonts["manifest_files"]:
-        with open(os.path.join(dir, manifest["filename"]), "w") as file:
-            file.write(manifest["contents"])
-            file.close()
-
-    total = len(family_fonts["font_files"])
-
     def _download(font):
-        utils.log("info", "({}/{}) Downloading {}".format(family_fonts["font_files"].index(font) + 1, total, font['filename']))
+        utils.log("info", f"({fonts.index(font) + 1}/{len(fonts)}) Downloading {font['url']}")
 
-        status = download_font(font, os.path.join(dir, font["filename"]))
+        state = utils.download_file(font["url"], f"{dir}/{font['filename']}", 5, (0 if IS_NO_CACHE else FONT_CACHE_AGE))
 
-        if status == "success":
+        if state == "successed":
             successed.append(font)
-        elif status == "failed":
-            failed.append(font)
-        elif status == "cached":
+        elif state == "cached":
             cached.append(font)
+        elif state == "failed":
+            failed.append(font)
 
-    with ThreadPoolExecutor(max_workers) as executor:
-        futures = [executor.submit(_download, font) for font in family_fonts["font_files"]]
-        [future.result() for future in as_completed(futures)]
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = as_completed([executor.submit(_download, font) for font in fonts])
+        [future.result() for future in futures]
+
+    return [successed, cached, failed]
+
+
+def download_family(family: str):
+    """Download complete set of given font family"""
+
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
+
+    family = resolve_family_name(family)
+    [manifest_files, font_files] = get_family_files(family)
+
+    dir = os.path.join(fonts_dir, family.replace(" ", "_"))
+
+    for manifest in manifest_files:
+        utils.write_file(f"{dir}/{manifest['filename']}", manifest["contents"])
+
+    [successed, cached, failed] = download_fonts(font_files, dir)
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
@@ -326,12 +282,12 @@ def download_family(unsafe_family_name: str):
     utils.log("info", "Installation '{}' finished.".format(family))
 
 
-def remove_family(unsafe_family_name: str):
+def remove_family(family: str):
     """Remove already installed font family. If given font family wasn't installed yet, do nothing."""
 
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family = resolve_family_name(unsafe_family_name)
+    family = resolve_family_name(family)
     dir = os.path.join(fonts_dir, family.replace(" ", "_"))
 
     if os.path.isdir(dir):
@@ -356,16 +312,14 @@ def get_installed_families() -> List[str]:
     return families
 
 
-def get_license_content(unsafe_family_name: str) -> str:
+def get_license_content(family: str) -> str:
     """
     Get license of a font family. Not just license name, including its contents.
     """
 
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family_fonts = get_family_fonts(unsafe_family_name)
-
-    for manifest in family_fonts["manifest__files"]:
+    for manifest in get_family_files(family)[0]:
         if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
             return manifest["contents"]
 
@@ -392,7 +346,7 @@ def preview_font(font: Dict, preview_text: Optional[str] = None, font_size: int 
         fontfile = os.path.expandvars(f"$HOME/.cache/gfont/{font['filename']}")
         imagefile = os.path.expandvars("$HOME/.cache/gfont/preview.png")
 
-        download_font(font, fontfile)
+        utils.download_file(font["url"], fontfile)
 
         os.system(
             f'convert -background "#101010" -fill "#ffffff" -font "{fontfile}" -pointsize {font_size} label:"{preview_text}" {imagefile}'
@@ -404,50 +358,24 @@ def preview_font(font: Dict, preview_text: Optional[str] = None, font_size: int 
         utils.log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
 
-def pack_webfonts(unsafe_family_name: str, dir: str):
+def pack_webfonts(family: str, dir: str):
     """Pack a font family to use in websites as self-hosted fonts"""
 
-    utils.isinstance_check(unsafe_family_name, str, "First argument 'unsafe_family_name' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
 
-    family_metadata = get_family_metadata(unsafe_family_name)
-    webfonts_css = get_family_webfonts_css(family_metadata["family"])
-    nospace_family_name = family_metadata["family"].replace(" ", "_")
+    family = resolve_family_name(family)
+    webfonts_css = get_family_webfonts_css(family)
 
-    fonts = re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)
-    fonts = list(set(fonts))
+    subdir = os.path.join(dir, family.replace(" ", "_"))
 
-    total = len(fonts)
+    woff_fonts = list(set(re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)))
+    fonts = [{"url": font, "filename": os.path.basename(font)} for font in woff_fonts]
 
-    successed = []
-    failed = []
-    cached = []
+    [successed, cached, failed] = download_fonts(fonts, f"{subdir}/fonts")
 
-    def _download(font):
-        nonlocal webfonts_css
-
-        filename = os.path.basename(font)
-        filepath = os.path.join(dir, nospace_family_name, "fonts", filename)
-        webfonts_css = webfonts_css.replace(font, f"fonts/{filename}")
-
-        utils.log("info", "({}/{}) Downloading {}".format(fonts.index(font) + 1, total, font))
-
-        status = download_font({"filename": filename, "url": font}, filepath)
-
-        if status == "success":
-            successed.append(font)
-        elif status == "failed":
-            failed.append(font)
-        elif status == "cached":
-            cached.append(font)
-
-    with ThreadPoolExecutor(max_workers) as executor:
-        futures = [executor.submit(_download, font) for font in fonts]
-        [future.result() for future in as_completed(futures)]
-
-    with open(os.path.join(dir, nospace_family_name, nospace_family_name + ".css"), "w") as file:
-        file.write(webfonts_css)
-        file.close()
+    webfonts_css = re.sub(r"https://fonts.gstatic.com/.+/", "fonts/", webfonts_css)
+    utils.write_file(f"{subdir}/{family.replace(' ', '_')}.css", webfonts_css)
 
     utils.log("info", f"Success {len(successed) + len(cached)} Failed {len(failed)} Cached {len(cached)}")
     utils.log("info", "Packing webfonts finished.")
