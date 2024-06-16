@@ -6,4 +6,4 @@ if [ -z "$1" ]; then
 fi
 
 sed -i -E "s/^version = .+/version = \"$1\"/" pyproject.toml
-sed -i -E "s/^version = .+/version = \"$1\"/" src/gfont/version.py
+sed -i -E "s/^VERSION = .+/VERSION = \"$1\"/" src/gfont/constants.py
