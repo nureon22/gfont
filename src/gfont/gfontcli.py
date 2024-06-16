@@ -1,6 +1,6 @@
 import argparse
 
-from . import gfontlibs as libs
+from . import gfontlibs as libs, utils
 from .version import version
 
 
@@ -42,7 +42,7 @@ def list_command(args):
 def install_command(args):
     families = [libs.resolve_family_name(family, True) for family in args.family[0]]
 
-    if libs.IS_ASSUME_YES or libs.ask_yes_no('Installing "{}"\nDo you want to continue'.format('", "'.join(families))):
+    if libs.IS_ASSUME_YES or utils.ask_yes_no('Installing "{}"\nDo you want to continue'.format('", "'.join(families))):
         for family in families:
             libs.download_family(family)
 
@@ -50,7 +50,7 @@ def install_command(args):
 def remove_command(args):
     families = [libs.resolve_family_name(family, True) for family in args.family[0]]
 
-    if libs.IS_ASSUME_YES or libs.ask_yes_no('Removing "{}"\nDo you want to continue'.format('", "'.join(families))):
+    if libs.IS_ASSUME_YES or utils.ask_yes_no('Removing "{}"\nDo you want to continue'.format('", "'.join(families))):
         for family in families:
             libs.remove_family(family)
 
