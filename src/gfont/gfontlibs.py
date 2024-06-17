@@ -31,7 +31,7 @@ def get_available_families(refresh: bool = False) -> List[str]:
     if refresh is False:
         if os.path.isfile(CACHE_FILE):
             # if fonts_metadata_file is older than 30 days, refresh it
-            refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > 3600 * 24 * 30
+            refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > METADATA_CACHE_AGE
         else:
             refresh = True
 
@@ -187,7 +187,7 @@ def get_family_metadata(family: str, refresh: bool = False) -> Dict:
 
         return metadata
     else:
-        if os.path.isfile(filepath) and time.time() - os.path.getmtime(filepath) < 3600 * 24 * 7:
+        if os.path.isfile(filepath) and time.time() - os.path.getmtime(filepath) < METADATA_CACHE_AGE:
             return json.loads(utils.read_file(filepath))  # type: ignore
 
         return get_family_metadata(family, True)
