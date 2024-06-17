@@ -1,8 +1,12 @@
 import os
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List
 
 from requests import request
+
+from .constants import *
 
 LOG_COLORS = {
     "DEBUG": "\033[34m",  # Blue
@@ -107,3 +111,9 @@ def download_file(url: str, filepath: str, cache_age: int = 0):
     res.raise_for_status()
 
     write_bytes_file(filepath, res.content)
+
+
+def thread_pool_loop(func, items, *args):
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = [executor.submit(func, item, *args) for item in items]
+        return [future.result() for future in as_completed(futures)]

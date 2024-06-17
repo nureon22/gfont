@@ -5,7 +5,6 @@ import re
 import shutil
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import (
     Dict,
     List,
@@ -21,16 +20,20 @@ IS_ASSUME_YES = False
 IS_NO_CACHE = False
 
 
-def get_available_families() -> List[str]:
-    """Get all available font family names"""
+def get_available_families(refresh: bool = False) -> List[str]:
+    """Get all available font family names
 
-    refresh = False
+    :param refresh - Refresh from internet instead of local cache
+    """
 
-    if os.path.isfile(CACHE_FILE):
-        # if fonts_metadata_file is older than 30 days, refresh it
-        refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > 3600 * 24 * 30
-    else:
-        refresh = True
+    utils.isinstance_check(refresh, bool, "First argument 'refresh' must be 'bool'")
+
+    if refresh is False:
+        if os.path.isfile(CACHE_FILE):
+            # if fonts_metadata_file is older than 30 days, refresh it
+            refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > 3600 * 24 * 30
+        else:
+            refresh = True
 
     families = None
 
@@ -141,26 +144,53 @@ def search_families(keywords: List[str], exact: bool = False) -> List[str]:
     return results
 
 
-def get_family_metadata(family: str) -> Dict:
+def refresh_all_metadata():
+    families = get_available_families()
+
+    utils.log("info", "\rRefreshing families metadata", end="")
+
+    def _func(family):
+        utils.log("info", f"\rRefreshing families metadata ({families.index(family)} / {len(families)})", end="")
+        get_family_metadata(family, True)
+
+    utils.thread_pool_loop(_func, families)
+    utils.log("info", "")
+
+
+def get_family_metadata(family: str, refresh: bool = False) -> Dict:
     """Get metadata of a specific font family
 
+    :param refresh - Refresh metadata from internet instead of local cache
     :return - Return a dict contains metadata of a font family
     """
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
+    utils.isinstance_check(refresh, bool, "Second argument 'refresh' must be 'bool'")
 
     family = resolve_family_name(family)
 
-    res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
+    filepath = os.path.join(CACHE_DIR, "families", family + ".json")
 
-    if res.status_code != 200:
-        utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
-        sys.exit(1)
+    if refresh:
+        res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
 
-    # "https://fonts.google.com/metadata/fonts/{family}" return )]}' at the
-    # beginning of the response. I don't know why. But this will make json parser
-    # to fail.
-    return json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+        if res.status_code != 200:
+            utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
+            sys.exit(1)
+
+        # "https://fonts.google.com/metadata/fonts/{family}" return )]}' at the
+        # beginning of the response. I don't know why. But this will make json parser
+        # to fail.
+        metadata = json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+
+        utils.write_file(filepath, json.dumps(metadata))
+
+        return metadata
+    else:
+        if os.path.isfile(filepath) and time.time() - os.path.getmtime(filepath) < 3600 * 24 * 7:
+            return json.loads(utils.read_file(filepath))  # type: ignore
+
+        return get_family_metadata(family, True)
 
 
 def resolve_family_name(family: str, exact: bool = False) -> str:
@@ -224,9 +254,7 @@ def download_fonts(fonts: List[Dict], dir: str):
 
         utils.download_file(font["url"], f"{dir}/{font['filename']}", (0 if IS_NO_CACHE else FONT_CACHE_AGE))
 
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = as_completed([executor.submit(_download, font) for font in fonts])
-        [future.result() for future in futures]
+    utils.thread_pool_loop(_download, fonts)
 
 
 def download_family(family: str):

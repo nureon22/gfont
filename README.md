@@ -52,6 +52,12 @@ pip install dist/gfont-<version>-py3-none-any.whl
 All commands support case-insensitive family names\
 You can also use underscore (\_) instead of space character
 
+### Refresh
+Refresh metadata of all available families into local cache (Recommended).
+```sh
+gfont refresh
+```
+
 ### Install
 
 ```sh

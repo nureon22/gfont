@@ -75,6 +75,10 @@ def webfont_command(args):
         libs.pack_webfonts(libs.resolve_family_name(family, True), args.dir)
 
 
+def refresh_command(args):
+    libs.refresh_all_metadata()
+
+
 def main():
     argparser = argparse.ArgumentParser(
         prog="gfont",
@@ -134,6 +138,10 @@ def main():
     webfont_parser.add_argument("--no-cache", action="store_true", help="download the font again, even it is already downloaded")
     webfont_parser.add_argument("family", action="append", nargs="+", help="Name of the font family (case-insensitive)")
     webfont_parser.set_defaults(func=webfont_command)
+
+    # refresh sub-command
+    refresh_parser = subparsers.add_parser("refresh", help="refresh all families metadata")
+    refresh_parser.set_defaults(func=refresh_command)
 
     args = argparser.parse_args()
 
