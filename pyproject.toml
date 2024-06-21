@@ -10,7 +10,7 @@ license = "MIT"
 authors = [
     "Phyo Wai Lin <phyowailin2004@proton.me>"
 ]
-keywords = ["font", "google"]
+keywords = ["font", "ttf", "woff2", "woff2", "webfonts", "terminal"]
 classifiers = [
     "Environment :: Console",
     "Operating System :: POSIX :: Linux",
