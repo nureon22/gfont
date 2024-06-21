@@ -58,6 +58,13 @@ You can also use underscore (\_) instead of space character
 gfont install "Noto Sans"
 ```
 
+### Pack as webfont
+Pack a font family to use in websites as self-hosted fonts
+
+```sh
+gfont webfont "Noto Sans" --dir <dir>
+```
+
 ### Search
 
 ```sh
@@ -76,17 +83,17 @@ gfont info "Noto Sans"
 gfont remove "Noto Sans"
 ```
 
+### List installed font families
+
+```sh
+gfont list
+```
+
 ### Preview
 
 Please install imagemagick first
 ```sh
 gfont preview "Noto Sans"
-```
-
-### List installed font families
-
-```sh
-gfont list
 ```
 
 ### Refresh
@@ -95,28 +102,29 @@ Refresh metadata of all available families into local cache (Optional).
 gfont refresh
 ```
 
-### Pack as webfont
-Pack a font family to use in websites as self-hosted fonts
-
-```sh
-gfont webfont "Noto Sans" --dir <dir>
-```
-
 ### For mor information
 `gfont <command> --help`
 
 
-## Related files
+## Related files and directories
 
-List of all available font families. This file will be refreshed every 30 days
+List of all available font families. This file will be refreshed every 7 days
 
 Linux: `~/.cache/gfont/families.json`\
 Mac: `~/Library/Caches/gfont/families.json`
+
+
+Directory for families metadata. Store as single JSON file per family.
+
+Linux: `~/.cache/gfont/families/`\
+Mac: `~/Library/Caches/gfont/families/`
+
 
 Image of last previewed font family
 
 Linux: `~/.cache/gfont/preview.png`\
 Mac: `~/Library/Caches/gfont/preview.png`
+
 
 Directory for installed fonts
 
