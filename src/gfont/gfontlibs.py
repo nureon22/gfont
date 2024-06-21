@@ -151,7 +151,7 @@ def refresh_all_metadata():
 
     def _func(family):
         utils.log("info", f"\rRefreshing families metadata ({families.index(family)} / {len(families)})", end="")
-        get_family_metadata(family, True)
+        get_family_metadata(family, False)
 
     utils.thread_pool_loop(_func, families)
     utils.log("info", "")
