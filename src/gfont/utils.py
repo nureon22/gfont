@@ -30,14 +30,7 @@ def log(level: str, message: str, **kwargs):
 def ask_yes_no(question: str) -> bool:
     isinstance_check(question, str, "First argument 'question' must be 'str'")
 
-    while True:
-        answer = input(f"{question} [y|N] ").upper().strip()[0]
-        if answer == "":
-            return False
-        elif answer == "N":
-            return False
-        elif answer == "Y":
-            return True
+    return (input(f"{question} [y|N] ") or "N").upper().strip()[0] == "Y"
 
 
 def family_not_found(family_name, exit=True):
