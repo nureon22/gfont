@@ -249,8 +249,11 @@ def download_fonts(fonts: List[Dict], dir: str):
     utils.isinstance_check(fonts, List, "First argument 'font' must be 'List'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
 
+    total = len(fonts)
+    total_width = len(str(total))
+
     def _download(font):
-        utils.log("info", f"({fonts.index(font) + 1}/{len(fonts)}) Downloading {font['url']}")
+        utils.log("info", f"({str(fonts.index(font) + 1).rjust(total_width, '0')}/{total}) Downloading {font['filename']}")
 
         utils.download_file(font["url"], f"{dir}/{font['filename']}", (0 if IS_NO_CACHE else FONT_CACHE_AGE))
 
