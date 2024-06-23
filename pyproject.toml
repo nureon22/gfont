@@ -3,7 +3,7 @@ gfont = "gfont.gfontcli:main"
 
 [tool.poetry]
 name = "gfont"
-version = "0.7.5"
+version = "0.7.6"
 description = "Browse and install fonts from fonts.google.com"
 readme = "README.md"
 license = "MIT"
