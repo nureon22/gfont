@@ -73,6 +73,10 @@ def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional
     """Return CSS content of a font family"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
+    utils.isinstance_check(woff2, bool, "Second argument 'woff2' must be 'bool'")
+
+    if variants is not None:
+        utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
 
     family = resolve_family_name(family)
     metadata = get_family_metadata(family)
@@ -206,6 +210,9 @@ def get_family_metadata(family: str, refresh: bool = False) -> Dict:
 def resolve_variant_name(variant: str, shorten: bool = True) -> str:
     """Resolve font variant to shorten or long standard format"""
 
+    utils.isinstance_check(variant, str, "First argument 'variant' must be 'str'")
+    utils.isinstance_check(shorten, bool, "Second argument 'shorten' must be 'bool'")
+
     if variant == "regular":
         variant = "400"
     elif variant == "italic":
@@ -272,7 +279,7 @@ def download_fonts(fonts: List[Dict], dir: str):
     :param font: dictionary that hold information of a font, should contains 'filename' and 'url' properties.
     """
 
-    utils.isinstance_check(fonts, List, "First argument 'font' must be 'List'")
+    utils.isinstance_check(fonts, List, "First argument 'fonts' must be 'List'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
 
     total = len(fonts)
@@ -374,7 +381,7 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
 
         preview_text = re.sub(r"(\\n|\n|\")", "", json.loads(res.text[4:])["sampleText"]["specimen48"])
     else:
-        utils.isinstance_check(preview_text, str, "Second argument 'preview_text' must be None or type 'str'")
+        utils.isinstance_check(preview_text, str, "Second argument 'preview_text' must be 'None' or 'str'")
 
     utils.isinstance_check(font_size, int, "Third argument 'font_size' must be 'int'")
 
@@ -414,6 +421,9 @@ def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
+
+    if variants is not None:
+        utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
 
     family = resolve_family_name(family)
     family_metadata = get_family_metadata(family)
