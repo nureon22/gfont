@@ -1,9 +1,7 @@
 import json
 import os
-import platform
 import re
 import shutil
-import sys
 import time
 from typing import (
     Dict,
@@ -20,40 +18,39 @@ IS_ASSUME_YES = False
 IS_NO_CACHE = False
 
 
-def get_available_families(refresh: bool = False) -> List[str]:
-    """Get all available font family names
+def get_families(refresh: bool = False) -> Dict[str, Dict]:
+    """Get all font families
 
-    :param refresh - Refresh from internet instead of local cache
+    :param refresh - Force to refresh from internet instead of local cache
     """
 
     utils.isinstance_check(refresh, bool, "First argument 'refresh' must be 'bool'")
 
     if refresh is False:
         if os.path.isfile(CACHE_FILE):
-            # if fonts_metadata_file is older than 30 days, refresh it
             refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > METADATA_CACHE_AGE
         else:
             refresh = True
 
-    families = None
+    families = {}
 
     if refresh:
-        res = request("GET", "https://fonts.google.com/metadata/fonts", timeout=REQUEST_TIMEOUT)
+        res = request("GET", f"{API_URL}", timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
+        for item in res.json()["items"]:
+            families[item["family"]] = item
+
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
-
-        families = [family_metadata["family"] for family_metadata in json.loads(res.text)["familyMetadataList"]]
-
-        utils.write_file(CACHE_FILE, json.dumps(families))
+        utils.write_file(CACHE_FILE, json.dumps(families, indent=4))
     else:
         families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
 
     return families
 
 
-def get_family_files(family: str) -> List[List[Dict]]:
-    "Get list of files (including manifest files) contains in a font family"
+def get_manifest_files(family: str) -> List[Dict]:
+    "Get list of manifest files for the family"
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
@@ -67,7 +64,7 @@ def get_family_files(family: str) -> List[List[Dict]]:
     # to fail.
     data = json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
 
-    return [data["manifest"]["files"], data["manifest"]["fileRefs"]]
+    return data["manifest"]["files"]
 
 
 def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional[List[str]] = None) -> str:
@@ -118,7 +115,7 @@ def search_families(keywords: List[str], exact: bool = False) -> List[str]:
 
     results = []
 
-    for family in get_available_families():
+    for family in get_families():
         not_found = False
         family_lower = family.lower()
 
@@ -141,7 +138,7 @@ def search_families(keywords: List[str], exact: bool = False) -> List[str]:
 
 
 def refresh_all_metadata():
-    families = get_available_families()
+    families = list(get_families().keys())
 
     utils.log("info", "\rRefreshing families metadata", end="")
 
@@ -157,7 +154,18 @@ def get_family_metadata(family: str, refresh: bool = False) -> Dict:
     """Get metadata of a specific font family
 
     :param refresh - Refresh metadata from internet instead of local cache
-    :return - Return a dict contains metadata of a font family
+    :return - Return a dict contains following fields of the font family
+            family: The name of the family
+            subsets: A list of scripts supported by the family
+            menu: A url to the family subset covering only the name of the family.
+            variants: The different styles available for the family
+            version: The font family version.
+            axes: Axis range, Present only upon request for variable fonts.
+            lastModified: The date (format "yyyy-MM-dd") the font family was modified for the last time.
+            files: The font family files (with all supported scripts) for each one of the available variants.
+            designers: A list of designers of the family
+            license: Shorten license name of the family
+            isOpenSource: A bool whether the family is open-source or not
     """
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -165,7 +173,7 @@ def get_family_metadata(family: str, refresh: bool = False) -> Dict:
 
     family = resolve_family_name(family)
 
-    filepath = os.path.join(CACHE_DIR, "families", family + ".json")
+    filepath = os.path.join(CACHE_DIR, "families", family.replace(" ", "_") + ".json")
 
     if refresh:
         res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
@@ -174,16 +182,39 @@ def get_family_metadata(family: str, refresh: bool = False) -> Dict:
         # "https://fonts.google.com/metadata/fonts/{family}" return )]}' at the
         # beginning of the response. I don't know why. But this will make json parser
         # to fail.
-        metadata = json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+        original_extrametadata = json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+        extrametadata = {}
 
-        utils.write_file(filepath, json.dumps(metadata))
+        # Copy only specific fields
+        for key in ["designers", "license", "isOpenSource"]:
+            extrametadata[key] = original_extrametadata[key]
 
-        return metadata
+        # Place before merging statement to make sure only required information are cached
+        utils.write_file(filepath, json.dumps(extrametadata))
+
+        return {**extrametadata, **get_families()[family]}
     else:
         if os.path.isfile(filepath) and time.time() - os.path.getmtime(filepath) < METADATA_CACHE_AGE:
-            return json.loads(utils.read_file(filepath))  # type: ignore
+            extrametadata = json.loads(utils.read_file(filepath))  # type: ignore
+            return {**extrametadata, **get_families()[family]}
 
         return get_family_metadata(family, True)
+
+
+def resolve_variant_name(variant: str, shorten: bool = True) -> str:
+    """Resolve font variant to shorten or long standard format"""
+
+    if variant == "regular":
+        variant = "400"
+    elif variant == "italic":
+        variant = "400i"
+
+    variant = variant.replace("italic", "i")
+
+    if not shorten:
+        variant = FONT_VARIANT_STANDARD_NAMES[variant]
+
+    return variant
 
 
 def resolve_family_name(family: str, exact: bool = False) -> str:
@@ -192,7 +223,7 @@ def resolve_family_name(family: str, exact: bool = False) -> str:
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(exact, bool, "Second argument 'exact' must be 'bool'")
 
-    if family in get_available_families():
+    if family in get_families():
         return family
 
     families = search_families([family.replace("_", " ")], exact)
@@ -223,8 +254,8 @@ def get_printable_family_info(family: str, isRaw: bool = False) -> str:
             \r\033[01;34m{family_metadata['family']}\033[0m
             \r------------
             \r\033[34mCategory\033[0m   : {family_metadata['category']}
-            \r\033[34mSubsets\033[0m    : {', '.join(family_metadata['coverage'].keys())}
-            \r\033[34mFonts\033[0m      : {', '.join(list(family_metadata['fonts'].keys()))}
+            \r\033[34mSubsets\033[0m    : {', '.join(family_metadata['subsets'])}
+            \r\033[34mVariants\033[0m   : {', '.join([resolve_variant_name(x) for x in family_metadata['variants']])}
             \r\033[34mDesigners\033[0m  : {', '.join([designer["name"] for designer in family_metadata['designers']])}
             \r\033[34mLicense\033[0m    : {family_metadata['license']}
             \r\033[34mOpenSource\033[0m : {family_metadata['isOpenSource']}
@@ -259,14 +290,22 @@ def download_family(family: str):
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
     family = resolve_family_name(family)
-    [manifest_files, font_files] = get_family_files(family)
+    font_files = get_families()[family]["files"]
 
-    dir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
+    subdir = family.replace(" ", "_")
 
-    for manifest in manifest_files:
-        utils.write_file(f"{dir}/{manifest['filename']}", manifest["contents"])
+    for manifest in get_manifest_files(family):
+        utils.write_file(os.path.join(FONTS_DIR, subdir, manifest["filename"]), manifest["contents"])
 
-    download_fonts(font_files, dir)
+    fonts = [
+        {
+            "filename": f"{subdir}-{resolve_variant_name(key, False)}{os.path.splitext(font_files[key])[1]}",
+            "url": font_files[key],
+        }
+        for key in font_files
+    ]
+
+    download_fonts(fonts, os.path.join(FONTS_DIR, subdir))
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
@@ -311,7 +350,7 @@ def get_license_content(family: str) -> str:
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    for manifest in get_family_files(family)[0]:
+    for manifest in get_manifest_files(family):
         if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
             return manifest["contents"]
 
@@ -339,7 +378,7 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
 
     preview_text = utils.split_long_text(preview_text, 32)
 
-    font_files = get_family_files(family)[1]
+    font_files = get_families()[family]
     font = font_files[0]
 
     for font_file in font_files:

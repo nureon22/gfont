@@ -26,7 +26,7 @@ def list_command(args):
     installed_families.sort()
 
     if args.all:
-        for family in libs.get_available_families():
+        for family in libs.get_families():
             if family in installed_families:
                 print("\033[34m{}\033[0m [installed]".format(family))
             else:
