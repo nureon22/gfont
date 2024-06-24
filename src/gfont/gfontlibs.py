@@ -392,8 +392,8 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
         raise Exception(f"Cannot preview {family}")
 
     if shutil.which("convert") and shutil.which("display"):
-        fontfile = os.path.expandvars(f"$HOME/.cache/gfont/{font['filename']}")
-        imagefile = os.path.expandvars("$HOME/.cache/gfont/preview.png")
+        fontfile = os.path.join(CACHE_DIR, font["filename"])
+        imagefile = os.path.join(CACHE_DIR, "preview.png")
 
         utils.download_file(font["url"], fontfile)
 
