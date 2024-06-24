@@ -56,16 +56,7 @@ def remove_command(args):
 
 
 def preview_command(args):
-    fonts = libs.get_family_files(libs.resolve_family_name(args.family, True))[1]
-
-    regular_font: dict | None = None
-
-    for font in fonts:
-        if "Regular" in font["filename"]:
-            regular_font = font
-
-    if regular_font:
-        libs.preview_font(regular_font, args.text if args.text else None)
+    libs.preview_font(args.family, args.text if args.text else None)
 
 
 def webfont_command(args):

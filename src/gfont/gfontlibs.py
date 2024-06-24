@@ -330,21 +330,34 @@ def get_license_content(family: str) -> str:
     return "License not found"
 
 
-def preview_font(font: Dict, preview_text: Optional[str] = None, font_size: int = 48):
+def preview_font(family: str, preview_text: Optional[str] = None, font_size: int = 48):
     """
     Preview the given font using imagemagick
     """
 
-    utils.isinstance_check(font, Dict, "First argument 'font' must be 'Dict'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
+
+    family = resolve_family_name(family, True)
 
     if preview_text is None:
-        preview_text = "Whereas disregard and contempt\nfor human rights have resulted "
+        res = request("GET", f"https://fonts.google.com/sampletext?family={family.replace(' ', '+')}")
+        res.raise_for_status()
+
+        preview_text = re.sub(r"(\\n|\n|\")", "", json.loads(res.text[4:])["sampleText"]["specimen48"])
     else:
         utils.isinstance_check(preview_text, str, "Second argument 'preview_text' must be None or type 'str'")
 
     utils.isinstance_check(font_size, int, "Third argument 'font_size' must be 'int'")
 
-    preview_text = utils.split_long_text(preview_text, 8)
+    preview_text = utils.split_long_text(preview_text, 32)
+
+    font_files = get_family_files(family)[1]
+    font = font_files[0]
+
+    for font_file in font_files:
+        if "Regular" in font_file["filename"]:
+            font = font_file
+            break
 
     if shutil.which("convert") and shutil.which("display"):
         fontfile = os.path.expandvars(f"$HOME/.cache/gfont/{font['filename']}")

@@ -40,20 +40,19 @@ def family_not_found(family_name, exit=True):
         sys.exit(1)
 
 
-def split_long_text(text: str, max_words_count: int):
+def split_long_text(text: str, max_length: int):
     """
-    Add line break at every {max_words_count} words
+    Add line break at every {max_length} words
     """
 
     isinstance_check(text, str, "First argument 'text' must be 'str'")
-    isinstance_check(max_words_count, int, "Second argument 'max_words_count' must be 'int'")
+    isinstance_check(max_length, int, "Second argument 'max_length' must be 'int'")
 
     result = ""
 
-    words = text.split(" ")
-    for index in range(0, len(words), max_words_count):
-        end = index + max_words_count
-        result = result + " ".join(words[index:end]) + "\n"
+    for index in range(0, len(text), max_length):
+        end = index + max_length
+        result = result + text[index:end] + "\n"
 
     return result
 
