@@ -12,6 +12,7 @@ authors = [
 ]
 keywords = ["font", "ttf", "woff2", "woff2", "webfonts", "terminal"]
 classifiers = [
+    "Development Status :: 1 - Planning",
     "Environment :: Console",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
