@@ -39,10 +39,7 @@ def get_available_families(refresh: bool = False) -> List[str]:
 
     if refresh:
         res = request("GET", "https://fonts.google.com/metadata/fonts", timeout=REQUEST_TIMEOUT)
-
-        if res.status_code != 200:
-            utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
-            sys.exit(1)
+        res.raise_for_status()
 
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
 
@@ -63,10 +60,7 @@ def get_family_files(family: str) -> List[List[Dict]]:
     family = resolve_family_name(family)
 
     res = request("GET", f"https://fonts.google.com/download/list?family={family}", timeout=REQUEST_TIMEOUT)
-
-    if res.status_code != 200:
-        utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
-        sys.exit(1)
+    res.raise_for_status()
 
     # https://fonts.google.com/download/list?family={family} return )]}' at the
     # beginning of the response. I don't know why. But this will make json parser
@@ -107,10 +101,7 @@ def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
     res = request("GET", url, headers=headers, timeout=REQUEST_TIMEOUT)
-
-    if res.status_code != 200:
-        utils.log("error", f"Request to {res.url} failed. {res.reason}")
-        sys.exit(1)
+    res.raise_for_status()
 
     return res.text
 
@@ -178,10 +169,7 @@ def get_family_metadata(family: str, refresh: bool = False) -> Dict:
 
     if refresh:
         res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
-
-        if res.status_code != 200:
-            utils.log("error", f"Request to '{res.url}' failed. {res.reason}")
-            sys.exit(1)
+        res.raise_for_status()
 
         # "https://fonts.google.com/metadata/fonts/{family}" return )]}' at the
         # beginning of the response. I don't know why. But this will make json parser
