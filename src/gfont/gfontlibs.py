@@ -39,6 +39,8 @@ def get_families(refresh: bool = False) -> Dict[str, Dict]:
         res.raise_for_status()
 
         for item in res.json()["items"]:
+            if item["family"].startswith("Material"):
+                continue
             families[item["family"]] = item
 
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
