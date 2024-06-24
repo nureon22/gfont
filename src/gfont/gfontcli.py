@@ -72,7 +72,8 @@ def webfont_command(args):
     families = [family for family in args.family[0]]
 
     for family in families:
-        libs.pack_webfonts(libs.resolve_family_name(family, True), args.dir)
+        [family, variants] = family.split(":")
+        libs.pack_webfonts(libs.resolve_family_name(family), args.dir, variants.split(","))
 
 
 def refresh_command(args):

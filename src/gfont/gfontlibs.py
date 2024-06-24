@@ -76,7 +76,7 @@ def get_family_files(family: str) -> List[List[Dict]]:
     return [data["manifest"]["files"], data["manifest"]["fileRefs"]]
 
 
-def get_family_webfonts_css(family: str) -> str:
+def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional[List[str]] = None) -> str:
     """Return CSS content of a font family"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -84,13 +84,17 @@ def get_family_webfonts_css(family: str) -> str:
     family = resolve_family_name(family)
     metadata = get_family_metadata(family)
 
+    if variants:
+        variants = [x for x in variants if x in metadata["fonts"]]
+    else:
+        variants = metadata["fonts"]
+
     url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
 
     if "fonts" in metadata:
-        fonts = metadata["fonts"].keys()
         finalfonts = []
 
-        for font in fonts:
+        for font in variants:  # type: ignore
             if font.endswith("i"):
                 finalfonts.append("1," + font[:-1])
             else:
@@ -101,7 +105,8 @@ def get_family_webfonts_css(family: str) -> str:
         url = url + ":ital,wght@" + ";".join(finalfonts)
 
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
-    res = request("GET", url, headers={"User-Agent": BROWSER_USER_AGENT}, timeout=REQUEST_TIMEOUT)
+    headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
+    res = request("GET", url, headers=headers, timeout=REQUEST_TIMEOUT)
 
     if res.status_code != 200:
         utils.log("error", f"Request to {res.url} failed. {res.reason}")
@@ -357,14 +362,17 @@ def preview_font(font: Dict, preview_text: Optional[str] = None, font_size: int 
         utils.log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
 
-def pack_webfonts(family: str, dir: str):
+def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
     """Pack a font family to use in websites as self-hosted fonts"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
 
     family = resolve_family_name(family)
-    webfonts_css = get_family_webfonts_css(family)
+    family_metadata = get_family_metadata(family)
+
+    variants = variants or family_metadata["fonts"]
+    webfonts_css = get_family_webfonts_css(family, woff2=True, variants=variants)
 
     subdir = os.path.join(dir, family.replace(" ", "_"))
 
