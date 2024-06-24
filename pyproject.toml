@@ -14,9 +14,17 @@ keywords = ["font", "ttf", "woff2", "woff2", "webfonts", "terminal"]
 classifiers = [
     "Environment :: Console",
     "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
     "Programming Language :: Python",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: System :: Console Fonts",
-    "Topic :: Text Processing :: Fonts"
+    "Topic :: Text Processing :: Fonts",
+    "License :: OSI Approved :: MIT License",
 ]
 
 [tool.poetry.dependencies]
