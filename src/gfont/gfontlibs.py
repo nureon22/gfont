@@ -378,13 +378,18 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
 
     preview_text = utils.split_long_text(preview_text, 32)
 
-    font_files = get_families()[family]
-    font = font_files[0]
+    font_files = get_family_metadata(family)["files"]
 
-    for font_file in font_files:
-        if "Regular" in font_file["filename"]:
-            font = font_file
+    font = None
+
+    # Choose one of these variants in specified order
+    for variant in ["400", "500", "600", "700", "300", "400i", "500i", "600i", "700i", "300i"]:
+        if variant in font_files:
+            font = {"filename": os.path.basename(font_files[variant]), "url": font_files[variant]}
             break
+
+    if font is None:
+        raise Exception(f"Cannot preview {family}")
 
     if shutil.which("convert") and shutil.which("display"):
         fontfile = os.path.expandvars(f"$HOME/.cache/gfont/{font['filename']}")
