@@ -87,6 +87,8 @@ def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional
     else:
         variants = metadata["variants"]
 
+    variants = [resolve_variant_name(x) for x in variants]  # type: ignore
+
     url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
 
     finalfonts = []
