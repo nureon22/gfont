@@ -22,6 +22,7 @@ METADATA_CACHE_AGE = 3600 * 24 * 7
 BROWSER_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0"
 VERSION = "0.7.6"
 
+# Note: Please don't you my API_KEY outside this application
 API_KEY = "AIzaSyDBVcn95JW2QN7Ttm5CfP_R7qRewHJa074"
 API_URL = f"https://www.googleapis.com/webfonts/v1/webfonts?key={API_KEY}"
 
