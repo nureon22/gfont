@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import time
+from datetime import datetime
 from typing import (
     Dict,
     List,
@@ -273,7 +274,7 @@ def get_printable_family_info(family: str, isRaw: bool = False) -> str:
     return content
 
 
-def download_fonts(fonts: List[Dict], dir: str):
+def download_fonts(fonts: List[Dict], dir: str, nocache: bool = False):
     """Download the given font, not complete set of font family.
 
     :param font: dictionary that hold information of a font, should contains 'filename' and 'url' properties.
@@ -288,7 +289,7 @@ def download_fonts(fonts: List[Dict], dir: str):
     def _download(font):
         utils.log("info", f"({str(fonts.index(font) + 1).rjust(total_width, '0')}/{total}) Downloading {font['filename']}")
 
-        utils.download_file(font["url"], f"{dir}/{font['filename']}", (0 if IS_NO_CACHE else FONT_CACHE_AGE))
+        utils.download_file(font["url"], f"{dir}/{font['filename']}", (0 if nocache or IS_NO_CACHE else FONT_CACHE_AGE))
 
     utils.thread_pool_loop(_download, fonts)
 
@@ -299,7 +300,8 @@ def download_family(family: str):
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
     family = resolve_family_name(family)
-    font_files = get_families()[family]["files"]
+    metadata = get_families()[family]
+    font_files = metadata["files"]
 
     subdir = family.replace(" ", "_")
 
@@ -314,7 +316,9 @@ def download_family(family: str):
         for key in font_files
     ]
 
-    download_fonts(fonts, os.path.join(FONTS_DIR, subdir))
+    # Check last modified date
+    lastModified = datetime.fromisoformat(metadata["lastModified"])
+    download_fonts(fonts, os.path.join(FONTS_DIR, subdir), lastModified.timestamp() > time.time())
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
