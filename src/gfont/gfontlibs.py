@@ -83,24 +83,23 @@ def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional
     metadata = get_family_metadata(family)
 
     if variants:
-        variants = [x for x in variants if x in metadata["fonts"]]
+        variants = [x for x in variants if x in metadata["variants"]]
     else:
-        variants = metadata["fonts"]
+        variants = metadata["variants"]
 
     url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
 
-    if "fonts" in metadata:
-        finalfonts = []
+    finalfonts = []
 
-        for font in variants:  # type: ignore
-            if font.endswith("i"):
-                finalfonts.append("1," + font[:-1])
-            else:
-                finalfonts.append("0," + font)
+    for font in variants:  # type: ignore
+        if font.endswith("i"):
+            finalfonts.append("1," + font[:-1])
+        else:
+            finalfonts.append("0," + font)
 
-        finalfonts.sort()
+    finalfonts.sort()
 
-        url = url + ":ital,wght@" + ";".join(finalfonts)
+    url = url + ":ital,wght@" + ";".join(finalfonts)
 
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
@@ -300,7 +299,7 @@ def download_family(family: str):
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
     family = resolve_family_name(family)
-    metadata = get_families()[family]
+    metadata = get_family_metadata(family)
     font_files = metadata["files"]
 
     subdir = family.replace(" ", "_")
@@ -432,7 +431,7 @@ def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
     family = resolve_family_name(family)
     family_metadata = get_family_metadata(family)
 
-    variants = variants or family_metadata["fonts"]
+    variants = variants or family_metadata["variants"]
     webfonts_css = get_family_webfonts_css(family, woff2=True, variants=variants)
 
     subdir = os.path.join(dir, family.replace(" ", "_"))
