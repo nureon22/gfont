@@ -18,7 +18,7 @@ def info_command(args):
     if args.license:
         print(libs.get_license_content(libs.resolve_family_name(args.family, True)))
     else:
-        print(libs.get_printable_family_info(libs.resolve_family_name(args.family, True), args.raw))
+        print(libs.get_printable_info(libs.resolve_family_name(args.family, True), args.raw))
 
 
 def list_command(args):
@@ -56,7 +56,7 @@ def remove_command(args):
 
 
 def preview_command(args):
-    libs.preview_font(args.family, args.text if args.text else None)
+    libs.preview_family(args.family, args.text if args.text else None)
 
 
 def webfont_command(args):

@@ -23,7 +23,7 @@ __families: Dict[str, Dict] = {}
 
 
 def get_families() -> Dict[str, Dict]:
-    """Get all font families"""
+    """Get families and its metadata as a dict"""
 
     global __families
 
@@ -36,12 +36,11 @@ def get_families() -> Dict[str, Dict]:
         refresh = True
 
     if refresh:
-        res = request("GET", f"{API_URL}", timeout=REQUEST_TIMEOUT)
+        res = request("GET", "https://fonts.google.com/metadata/fonts", timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
-        for item in res.json()["items"]:
-            if not item["family"].startswith("Material"):
-                __families[item["family"]] = item
+        for item in res.json()["familyMetadataList"]:
+            __families[item["family"]] = item
 
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
         utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
@@ -51,8 +50,8 @@ def get_families() -> Dict[str, Dict]:
     return __families
 
 
-def get_manifest_files(family: str) -> List[Dict]:
-    "Get list of manifest files for the family"
+def get_files(family: str) -> Dict[str, List]:
+    "Get manifest and fonts files for the family"
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
@@ -66,10 +65,10 @@ def get_manifest_files(family: str) -> List[Dict]:
     # to fail.
     data = json.loads(res.text[4:] if res.text.startswith(")]}'") else res.text)
 
-    return data["manifest"]["files"]
+    return {"manifest": data["manifest"]["files"], "fonts": data["manifest"]["fileRefs"]}
 
 
-def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional[List[str]] = None) -> str:
+def get_webfonts_css(family: str, woff2: bool = False, variants: Optional[List[str]] = None, text: Optional[str] = None) -> str:
     """Return CSS content of a font family"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -79,32 +78,23 @@ def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional
         utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
 
     family = resolve_family_name(family)
-    metadata = get_family_metadata(family)
-    all_variants = [resolve_variant_name(x) for x in metadata["variants"]]  # type: ignore
-
-    if variants:
-        variants = [resolve_variant_name(x) for x in variants]
-        for variant in variants:
-            if variant not in all_variants:
-                utils.log("error", f"Font variant '{variant}' is not available for '{family}'")
-                sys.exit(1)
-    else:
-        variants = all_variants
 
     url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
 
     if variants:
-        finalvariants = []
+        all_variants = list(get_families()[family]["fonts"].keys())  # type: ignore
 
-        for variant in variants:  # type: ignore
-            if variant.endswith("i"):
-                finalvariants.append("1," + variant[:-1])
-            else:
-                finalvariants.append("0," + variant)
+        for variant in variants:
+            if variant not in all_variants:
+                utils.log("error", f"Font variant '{variant}' is not available for '{family}'")
+                sys.exit(1)
 
+        finalvariants = [f"1,{x[:-1]}" if x.startswith("i") else f"0,{x}" for x in variants]
         finalvariants.sort()
-
         url = url + ":ital,wght@" + ";".join(finalvariants)
+
+    if text:
+        url = url + "&text=" + text
 
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
@@ -148,95 +138,6 @@ def search_families(keywords: List[str], exact: bool = False) -> List[str]:
     return results
 
 
-def refresh_all_metadata():
-    families = list(get_families().keys())
-
-    utils.log("info", "\rRefreshing families metadata", end="")
-
-    def _func(family):
-        utils.log("info", f"\rRefreshing families metadata ({families.index(family)} / {len(families)})", end="")
-        get_family_metadata(family, False)
-
-    utils.thread_pool_loop(_func, families)
-    utils.log("info", "")
-
-
-def get_family_metadata(family: str, refresh: bool = False) -> Dict:
-    """Get metadata of a specific font family
-
-    :param refresh - Refresh metadata from internet instead of local cache
-    :return - Return a dict contains following fields of the font family
-            family: The name of the family
-            subsets: A list of scripts supported by the family
-            menu: A url to the family subset covering only the name of the family.
-            variants: The different styles available for the family
-            version: The font family version.
-            axes: Axis range, Present only upon request for variable fonts.
-            lastModified: The date (format "yyyy-MM-dd") the font family was modified for the last time.
-            files: The font family files (with all supported scripts) for each one of the available variants.
-            designers: A list of designers of the family
-            license: Shorten license name of the family
-            isOpenSource: A bool whether the family is open-source or not
-    """
-
-    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
-    utils.isinstance_check(refresh, bool, "Second argument 'refresh' must be 'bool'")
-
-    family = resolve_family_name(family)
-
-    filepath = os.path.join(CACHE_DIR, "families", family.replace(" ", "_") + ".json")
-
-    if refresh:
-        res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
-        res.raise_for_status()
-
-        # "https://fonts.google.com/metadata/fonts/{family}" return )]}' at the
-        # beginning of the response. I don't know why. But this will make json parser
-        # to fail.
-        original_extrametadata = json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
-        extrametadata = {}
-
-        # Copy only specific fields
-        for key in ["designers", "license", "isOpenSource"]:
-            extrametadata[key] = original_extrametadata[key]
-
-        # Place before merging statement to make sure only required information are cached
-        utils.write_file(filepath, json.dumps(extrametadata))
-
-        return {**extrametadata, **get_families()[family]}
-    else:
-        if os.path.isfile(filepath) and time.time() - os.path.getmtime(filepath) < METADATA_CACHE_AGE:
-            extrametadata = json.loads(utils.read_file(filepath))  # type: ignore
-            return {**extrametadata, **get_families()[family]}
-
-        return get_family_metadata(family, True)
-
-
-def resolve_variant_name(variant: str, shorten: bool = True) -> str:
-    """Resolve font variant to shorten or long standard format"""
-
-    utils.isinstance_check(variant, str, "First argument 'variant' must be 'str'")
-    utils.isinstance_check(shorten, bool, "Second argument 'shorten' must be 'bool'")
-
-    original_variant = variant
-
-    if variant == "regular":
-        variant = "400"
-    elif variant == "italic":
-        variant = "400i"
-
-    variant = variant.replace("italic", "i")
-
-    if variant not in FONT_VARIANT_STANDARD_NAMES:
-        utils.log("error", f"Font variant '{original_variant}' is invalid.")
-        sys.exit(1)
-
-    if not shorten:
-        variant = FONT_VARIANT_STANDARD_NAMES[variant]
-
-    return variant
-
-
 def resolve_family_name(family: str, exact: bool = False) -> str:
     """Resolve a font family name contains (case-insensitive,underscore) to valid name"""
 
@@ -254,7 +155,7 @@ def resolve_family_name(family: str, exact: bool = False) -> str:
     return families[0]
 
 
-def get_printable_family_info(family: str, isRaw: bool = False) -> str:
+def get_printable_info(family: str, isRaw: bool = False) -> str:
     """Get metadata of a specific font family in pretty print format
 
     :param isRaw: if True, return is raw json format (contains extra informations)
@@ -263,22 +164,21 @@ def get_printable_family_info(family: str, isRaw: bool = False) -> str:
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(isRaw, bool, "Second argument 'isRaw' must be 'bool'")
 
-    family_metadata = get_family_metadata(family)
+    metadata = get_families()[family]
 
     content = ""
 
     if isRaw:
-        content = json.dumps(family_metadata, indent=2)
+        content = json.dumps(metadata, indent=4)
     else:
         content = f"""
-            \r\033[01;34m{family_metadata['family']}\033[0m
+            \r\033[01;34m{metadata['family']}\033[0m
             \r------------
-            \r\033[34mCategory\033[0m   : {family_metadata['category']}
-            \r\033[34mSubsets\033[0m    : {', '.join(family_metadata['subsets'])}
-            \r\033[34mVariants\033[0m   : {', '.join([resolve_variant_name(x) for x in family_metadata['variants']])}
-            \r\033[34mDesigners\033[0m  : {', '.join([designer["name"] for designer in family_metadata['designers']])}
-            \r\033[34mLicense\033[0m    : {family_metadata['license']}
-            \r\033[34mOpenSource\033[0m : {family_metadata['isOpenSource']}
+            \r\033[34mCategory\033[0m   : {metadata['category']}
+            \r\033[34mSubsets\033[0m    : {', '.join(metadata['subsets'])}
+            \r\033[34mFonts\033[0m      : {', '.join(list(metadata['fonts'].keys()))}
+            \r\033[34mDesigners\033[0m  : {', '.join(metadata['designers'])}
+            \r\033[34mOpenSource\033[0m : {metadata['isOpenSource']}
         \r"""
 
     return content
@@ -310,25 +210,15 @@ def download_family(family: str):
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
     family = resolve_family_name(family)
-    metadata = get_family_metadata(family)
-    font_files = metadata["files"]
+    files = get_files(family)
 
-    subdir = family.replace(" ", "_")
+    subdir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
 
-    for manifest in get_manifest_files(family):
+    for manifest in files["manifest"]:
         utils.write_file(os.path.join(FONTS_DIR, subdir, manifest["filename"]), manifest["contents"])
 
-    fonts = [
-        {
-            "filename": f"{subdir}-{resolve_variant_name(key, False)}{os.path.splitext(font_files[key])[1]}",
-            "url": font_files[key],
-        }
-        for key in font_files
-    ]
-
-    # Check last modified date
-    lastModified = datetime.fromisoformat(metadata["lastModified"])
-    download_fonts(fonts, os.path.join(FONTS_DIR, subdir), lastModified.timestamp() > time.time())
+    lastModified = datetime.fromisoformat(get_families()[family]['lastModified'])
+    download_fonts(files["fonts"], subdir, lastModified.timestamp() > time.time())
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
@@ -372,14 +262,14 @@ def get_license_content(family: str) -> str:
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    for manifest in get_manifest_files(family):
+    for manifest in get_files(family)["manifest"]:
         if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
             return manifest["contents"]
 
     return "License not found"
 
 
-def preview_font(family: str, preview_text: Optional[str] = None, font_size: int = 48):
+def preview_family(family: str, preview_text: Optional[str] = None, font_size: int = 48):
     """
     Preview the given font using imagemagick
     """
@@ -400,25 +290,14 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
 
     preview_text = utils.split_long_text(preview_text, 32)
 
-    font_files = get_family_metadata(family)["files"]
-
-    font = None
-
-    # Choose one of these variants in specified order
-    for variant in ["regular", "500", "600", "700", "300", "italic", "500italic", "600italic", "700italic", "300italic"]:
-        if variant in font_files:
-            font = {"filename": os.path.basename(font_files[variant]), "url": font_files[variant]}
-            break
-
-    if font is None:
-        utils.log("error", f"Cannot preview {family}")
-        sys.exit(1)
+    webfonts_css = get_webfonts_css(family, woff2=False, text=preview_text)
+    font = re.findall(r"https://fonts.gstatic.com/[^\)]+", webfonts_css)[0]
 
     if shutil.which("convert") and shutil.which("display"):
-        fontfile = os.path.join(CACHE_DIR, font["filename"])
+        fontfile = os.path.join(CACHE_DIR, "preview.ttf")
         imagefile = os.path.join(CACHE_DIR, "preview.png")
 
-        utils.download_file(font["url"], fontfile)
+        utils.download_file(font, fontfile)
 
         os.system(
             f'convert -background "#101010" -fill "#ffffff" -font "{fontfile}" -pointsize {font_size} label:"{preview_text}" {imagefile}'
@@ -426,6 +305,7 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
         os.system(f"display {imagefile}")
 
         os.remove(fontfile)
+        os.remove(imagefile)
     else:
         utils.log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
@@ -441,7 +321,7 @@ def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
 
     family = resolve_family_name(family)
 
-    webfonts_css = get_family_webfonts_css(family, woff2=True, variants=variants)
+    webfonts_css = get_webfonts_css(family, woff2=True, variants=variants)
 
     subdir = os.path.join(dir, family.replace(" ", "_"))
 
