@@ -97,34 +97,16 @@ Please install imagemagick first
 gfont preview "Noto Sans"
 ```
 
-### Refresh
-Refresh metadata of all available families into local cache (Optional).
-```sh
-gfont refresh
-```
-
 ### For mor information
 `gfont <command> --help`
 
 
 ## Related files and directories
 
-List of all available font families. This file will be refreshed every 7 days
+Directory for cached metadata of families
 
-Linux: `~/.cache/gfont/families.json`\
-Mac: `~/Library/Caches/gfont/families.json`
-
-
-Directory for families metadata. Store as single JSON file per family.
-
-Linux: `~/.cache/gfont/families/`\
-Mac: `~/Library/Caches/gfont/families/`
-
-
-Image of last previewed font family
-
-Linux: `~/.cache/gfont/preview.png`\
-Mac: `~/Library/Caches/gfont/preview.png`
+Linux: `~/.cache/gfont`\
+Mac: `~/Library/Caches/gfont`
 
 
 Directory for installed fonts
