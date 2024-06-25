@@ -19,6 +19,8 @@ from .constants import *
 IS_ASSUME_YES = False
 IS_NO_CACHE = False
 
+__families: Dict[str, Dict] | None = None
+
 
 def get_families(refresh: bool = False) -> Dict[str, Dict]:
     """Get all font families
@@ -27,6 +29,11 @@ def get_families(refresh: bool = False) -> Dict[str, Dict]:
     """
 
     utils.isinstance_check(refresh, bool, "First argument 'refresh' must be 'bool'")
+
+    global __families
+
+    if __families is not None:
+        return __families
 
     if refresh is False:
         if os.path.isfile(CACHE_FILE):
@@ -49,6 +56,8 @@ def get_families(refresh: bool = False) -> Dict[str, Dict]:
         utils.write_file(CACHE_FILE, json.dumps(families, indent=4))
     else:
         families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
+
+    __families = families
 
     return families
 
