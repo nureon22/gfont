@@ -64,7 +64,7 @@ def get_manifest_files(family: str) -> List[Dict]:
     # https://fonts.google.com/download/list?family={family} return )]}' at the
     # beginning of the response. I don't know why. But this will make json parser
     # to fail.
-    data = json.loads(res.text[4:] if res.text.find(")]}'") == 0 else res.text)
+    data = json.loads(res.text[4:] if res.text.startswith(")]}'") else res.text)
 
     return data["manifest"]["files"]
 
@@ -360,8 +360,7 @@ def get_installed_families() -> List[str]:
 
     for dir in os.listdir(FONTS_DIR) if os.path.isdir(FONTS_DIR) else []:
         if not dir.startswith("."):
-            family = dir.replace("_", " ")
-            families.append(family)
+            families.append(dir.replace("_", " "))
 
     return families
 
@@ -393,7 +392,7 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
         res = request("GET", f"https://fonts.google.com/sampletext?family={family.replace(' ', '+')}")
         res.raise_for_status()
 
-        preview_text = re.sub(r"(\\n|\n|\")", "", json.loads(res.text[4:])["sampleText"]["specimen48"])
+        preview_text = str(json.loads(res.text[4:])["sampleText"]["specimen48"])
     else:
         utils.isinstance_check(preview_text, str, "Second argument 'preview_text' must be 'None' or 'str'")
 
@@ -406,7 +405,7 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
     font = None
 
     # Choose one of these variants in specified order
-    for variant in ["400", "500", "600", "700", "300", "400i", "500i", "600i", "700i", "300i"]:
+    for variant in ["regular", "500", "600", "700", "300", "italic", "500italic", "600italic", "700italic", "300italic"]:
         if variant in font_files:
             font = {"filename": os.path.basename(font_files[variant]), "url": font_files[variant]}
             break
