@@ -81,27 +81,30 @@ def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional
 
     family = resolve_family_name(family)
     metadata = get_family_metadata(family)
+    all_variants = [resolve_variant_name(x) for x in metadata["variants"]]  # type: ignore
 
     if variants:
-        variants = [x for x in variants if x in metadata["variants"]]
+        variants = [resolve_variant_name(x) for x in variants]
+        for variant in variants:
+            if variant not in all_variants:
+                raise Exception(f"Font variant '{variant}' is not available for '{family}'")
     else:
-        variants = metadata["variants"]
-
-    variants = [resolve_variant_name(x) for x in variants]  # type: ignore
+        variants = all_variants
 
     url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
 
-    finalfonts = []
+    if variants:
+        finalvariants = []
 
-    for font in variants:  # type: ignore
-        if font.endswith("i"):
-            finalfonts.append("1," + font[:-1])
-        else:
-            finalfonts.append("0," + font)
+        for variant in variants:  # type: ignore
+            if variant.endswith("i"):
+                finalvariants.append("1," + variant[:-1])
+            else:
+                finalvariants.append("0," + variant)
 
-    finalfonts.sort()
+        finalvariants.sort()
 
-    url = url + ":ital,wght@" + ";".join(finalfonts)
+        url = url + ":ital,wght@" + ";".join(finalvariants)
 
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
@@ -215,12 +218,17 @@ def resolve_variant_name(variant: str, shorten: bool = True) -> str:
     utils.isinstance_check(variant, str, "First argument 'variant' must be 'str'")
     utils.isinstance_check(shorten, bool, "Second argument 'shorten' must be 'bool'")
 
+    original_variant = variant
+
     if variant == "regular":
         variant = "400"
     elif variant == "italic":
         variant = "400i"
 
     variant = variant.replace("italic", "i")
+
+    if variant not in FONT_VARIANT_STANDARD_NAMES:
+        raise Exception(f"Font variant '{original_variant}' is invalid.")
 
     if not shorten:
         variant = FONT_VARIANT_STANDARD_NAMES[variant]
@@ -431,9 +439,7 @@ def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
         utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
 
     family = resolve_family_name(family)
-    family_metadata = get_family_metadata(family)
 
-    variants = variants or family_metadata["variants"]
     webfonts_css = get_family_webfonts_css(family, woff2=True, variants=variants)
 
     subdir = os.path.join(dir, family.replace(" ", "_"))
