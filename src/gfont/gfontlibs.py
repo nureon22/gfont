@@ -19,47 +19,36 @@ from .constants import *
 IS_ASSUME_YES = False
 IS_NO_CACHE = False
 
-__families: Dict[str, Dict] | None = None
+__families: Dict[str, Dict] = {}
 
 
-def get_families(refresh: bool = False) -> Dict[str, Dict]:
-    """Get all font families
-
-    :param refresh - Force to refresh from internet instead of local cache
-    """
-
-    utils.isinstance_check(refresh, bool, "First argument 'refresh' must be 'bool'")
+def get_families() -> Dict[str, Dict]:
+    """Get all font families"""
 
     global __families
 
-    if __families is not None:
+    if __families:
         return __families
 
-    if refresh is False:
-        if os.path.isfile(CACHE_FILE):
-            refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > METADATA_CACHE_AGE
-        else:
-            refresh = True
-
-    families = {}
+    if os.path.isfile(CACHE_FILE):
+        refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > METADATA_CACHE_AGE
+    else:
+        refresh = True
 
     if refresh:
         res = request("GET", f"{API_URL}", timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
         for item in res.json()["items"]:
-            if item["family"].startswith("Material"):
-                continue
-            families[item["family"]] = item
+            if not item["family"].startswith("Material"):
+                __families[item["family"]] = item
 
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
-        utils.write_file(CACHE_FILE, json.dumps(families, indent=4))
+        utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
     else:
-        families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
+        __families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
 
-    __families = families
-
-    return families
+    return __families
 
 
 def get_manifest_files(family: str) -> List[Dict]:
