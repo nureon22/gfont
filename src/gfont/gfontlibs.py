@@ -104,6 +104,61 @@ def get_webfonts_css(family: str, woff2: bool = False, variants: Optional[List[s
     return res.text
 
 
+def get_installed_families() -> List[str]:
+    """Get installed font families"""
+
+    families = []
+
+    for dir in os.listdir(FONTS_DIR) if os.path.isdir(FONTS_DIR) else []:
+        if not dir.startswith("."):
+            families.append(dir.replace("_", " "))
+
+    return families
+
+
+def get_license_content(family: str) -> str:
+    """
+    Get license of a font family. Not just license name, including its contents.
+    """
+
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
+
+    for manifest in get_files(family)["manifest"]:
+        if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
+            return manifest["contents"]
+
+    return "License not found"
+
+
+def get_printable_info(family: str, isRaw: bool = False) -> str:
+    """Get metadata of a specific font family in pretty print format
+
+    :param isRaw: if True, return is raw json format (contains extra informations)
+    """
+
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
+    utils.isinstance_check(isRaw, bool, "Second argument 'isRaw' must be 'bool'")
+
+    metadata = get_families()[family]
+
+    content = ""
+
+    if isRaw:
+        content = json.dumps(metadata, indent=4)
+    else:
+        content = f"""
+            \r\033[01;34m{metadata['family']}\033[0m
+            \r------------
+            \r\033[34mCategory\033[0m   : {metadata['category']}
+            \r\033[34mSubsets\033[0m    : {', '.join(metadata['subsets'])}
+            \r\033[34mFonts\033[0m      : {', '.join(list(metadata['fonts'].keys()))}
+            \r\033[34mDesigners\033[0m  : {', '.join(metadata['designers'])}
+            \r\033[34mOpenSource\033[0m : {metadata['isOpenSource']}
+        \r"""
+
+    return content
+
+
 def search_families(keywords: List[str], exact: bool = False) -> List[str]:
     """Search font families contain given keywords.
 
@@ -153,35 +208,6 @@ def resolve_family_name(family: str, exact: bool = False) -> str:
         utils.family_not_found(family, True)
 
     return families[0]
-
-
-def get_printable_info(family: str, isRaw: bool = False) -> str:
-    """Get metadata of a specific font family in pretty print format
-
-    :param isRaw: if True, return is raw json format (contains extra informations)
-    """
-
-    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
-    utils.isinstance_check(isRaw, bool, "Second argument 'isRaw' must be 'bool'")
-
-    metadata = get_families()[family]
-
-    content = ""
-
-    if isRaw:
-        content = json.dumps(metadata, indent=4)
-    else:
-        content = f"""
-            \r\033[01;34m{metadata['family']}\033[0m
-            \r------------
-            \r\033[34mCategory\033[0m   : {metadata['category']}
-            \r\033[34mSubsets\033[0m    : {', '.join(metadata['subsets'])}
-            \r\033[34mFonts\033[0m      : {', '.join(list(metadata['fonts'].keys()))}
-            \r\033[34mDesigners\033[0m  : {', '.join(metadata['designers'])}
-            \r\033[34mOpenSource\033[0m : {metadata['isOpenSource']}
-        \r"""
-
-    return content
 
 
 def download_fonts(fonts: List[Dict], dir: str, nocache: bool = False):
@@ -241,32 +267,6 @@ def remove_family(family: str):
             os.system("fc-cache")
 
         utils.log("info", "Removing '{}' finished".format(family))
-
-
-def get_installed_families() -> List[str]:
-    """Get installed font families"""
-
-    families = []
-
-    for dir in os.listdir(FONTS_DIR) if os.path.isdir(FONTS_DIR) else []:
-        if not dir.startswith("."):
-            families.append(dir.replace("_", " "))
-
-    return families
-
-
-def get_license_content(family: str) -> str:
-    """
-    Get license of a font family. Not just license name, including its contents.
-    """
-
-    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
-
-    for manifest in get_files(family)["manifest"]:
-        if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
-            return manifest["contents"]
-
-    return "License not found"
 
 
 def preview_family(family: str, preview_text: Optional[str] = None, font_size: int = 48):
