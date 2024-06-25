@@ -24,7 +24,7 @@ def isinstance_check(value, instance, message):
 
 
 def log(level: str, message: str, **kwargs):
-    print(f"{LOG_COLORS[level.upper()]}{message}{LOG_COLORS['RESET']}", **kwargs)
+    print(f"{LOG_COLORS[level.upper()]}{level.upper()}: {message}{LOG_COLORS['RESET']}", **kwargs)
 
 
 def ask_yes_no(question: str) -> bool:

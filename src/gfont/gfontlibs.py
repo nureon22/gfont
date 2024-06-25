@@ -2,6 +2,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import time
 from datetime import datetime
 from typing import (
@@ -87,7 +88,8 @@ def get_family_webfonts_css(family: str, woff2: bool = False, variants: Optional
         variants = [resolve_variant_name(x) for x in variants]
         for variant in variants:
             if variant not in all_variants:
-                raise Exception(f"Font variant '{variant}' is not available for '{family}'")
+                utils.log("error", f"Font variant '{variant}' is not available for '{family}'")
+                sys.exit(1)
     else:
         variants = all_variants
 
@@ -228,7 +230,8 @@ def resolve_variant_name(variant: str, shorten: bool = True) -> str:
     variant = variant.replace("italic", "i")
 
     if variant not in FONT_VARIANT_STANDARD_NAMES:
-        raise Exception(f"Font variant '{original_variant}' is invalid.")
+        utils.log("error", f"Font variant '{original_variant}' is invalid.")
+        sys.exit(1)
 
     if not shorten:
         variant = FONT_VARIANT_STANDARD_NAMES[variant]
@@ -411,7 +414,8 @@ def preview_font(family: str, preview_text: Optional[str] = None, font_size: int
             break
 
     if font is None:
-        raise Exception(f"Cannot preview {family}")
+        utils.log("error", f"Cannot preview {family}")
+        sys.exit(1)
 
     if shutil.which("convert") and shutil.which("display"):
         fontfile = os.path.join(CACHE_DIR, font["filename"])
