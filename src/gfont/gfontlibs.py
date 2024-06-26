@@ -89,7 +89,7 @@ def get_webfonts_css(family: str, woff2: bool = False, variants: Optional[List[s
                 utils.log("error", f"Font variant '{variant}' is not available for '{family}'")
                 sys.exit(1)
 
-        finalvariants = [f"1,{x[:-1]}" if x.startswith("i") else f"0,{x}" for x in variants]
+        finalvariants = [f"1,{x[:-1]}" if x.endswith("i") else f"0,{x}" for x in variants]
         finalvariants.sort()
         url = url + ":ital,wght@" + ";".join(finalvariants)
 
@@ -318,6 +318,8 @@ def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
 
     if variants is not None:
         utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
+    else:
+        variants = list(get_families()[family]["fonts"].keys())
 
     family = resolve_family_name(family)
 

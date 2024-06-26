@@ -127,7 +127,7 @@ def main():
     webfont_parser = subparsers.add_parser("webfont", help="pack a font family to use in websites")
     webfont_parser.add_argument("--dir", required=True, help="directory to place the packed webfonts")
     webfont_parser.add_argument("--no-cache", action="store_true", help="download the font again, even it is already downloaded")
-    webfont_parser.add_argument("family", action="append", nargs="+", help="Name of the font family (case-insensitive)")
+    webfont_parser.add_argument("family", action="append", nargs="+", help="Name of the font family (case-insensitive). To pack only specific font variants use <family>:<variant> (e.g. Roboto:400, Roboto:700,700i)")
     webfont_parser.set_defaults(func=webfont_command)
 
     args = argparser.parse_args()
