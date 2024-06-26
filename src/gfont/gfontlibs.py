@@ -146,15 +146,14 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
     if isRaw:
         content = json.dumps(metadata, indent=4)
     else:
-        content = f"""
-            \r\033[01;34m{metadata['family']}\033[0m
-            \r------------
-            \r\033[34mCategory\033[0m   : {metadata['category']}
-            \r\033[34mSubsets\033[0m    : {', '.join(metadata['subsets'])}
-            \r\033[34mFonts\033[0m      : {', '.join(list(metadata['fonts'].keys()))}
-            \r\033[34mDesigners\033[0m  : {', '.join(metadata['designers'])}
-            \r\033[34mOpenSource\033[0m : {metadata['isOpenSource']}
-        \r"""
+        content = ""
+        content += f"\033[01;34m{metadata['family']}\033[0m\n"
+        content += "------------\n"
+        content += f"\033[34mCategory\033[0m   : {metadata['category']}\n"
+        content += f"\033[34mSubsets\033[0m    : {', '.join(metadata['subsets'])}\n"
+        content += f"\033[34mFonts\033[0m      : {', '.join(list(metadata['fonts'].keys()))}\n"
+        content += f"\033[34mDesigners\033[0m  : {', '.join(metadata['designers'])}\n"
+        content += f"\033[34mOpenSource\033[0m : {metadata['isOpenSource']}"
 
     return content
 
