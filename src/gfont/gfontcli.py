@@ -55,6 +55,17 @@ def remove_command(args):
             libs.remove_family(family)
 
 
+def update_command(args):
+    families = libs.get_installed_families()
+
+    print("Updating following families:")
+    print("\n".join(families))
+
+    if libs.IS_ASSUME_YES or utils.ask_yes_no('Do you want to continue?'):
+        for family in families:
+            libs.download_family(family)
+
+
 def preview_command(args):
     libs.preview_family(args.family, args.text if args.text else None)
 
@@ -116,6 +127,13 @@ def main():
     )
     remove_parser.add_argument("family", action="append", nargs="+", help="Name of the font family (case-insensitive)")
     remove_parser.set_defaults(func=remove_command)
+
+    # update sub-command
+    update_parser = subparsers.add_parser("update", help="update installed font families")
+    update_parser.add_argument(
+        "-y", "--yes", action="store_true", help="Assume 'yes' as answer to all prompts and run non-interactively."
+    )
+    update_parser.set_defaults(func=update_command)
 
     # preview sub-command
     preview_parser = subparsers.add_parser("preview", help="preview a font family")
