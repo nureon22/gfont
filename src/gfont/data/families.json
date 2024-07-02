@@ -21143,7 +21143,14 @@
         ],
         "version": "v142",
         "lastModified": "2024-04-09",
-        "category": "monospace"
+        "category": "monospace",
+        "axes": [],
+        "designers": [
+            "Google"
+        ],
+        "isNoto": false,
+        "isOpenSource": true,
+        "isBrandFont": false
     },
     "Material Icons Outlined": {
         "family": "Material Icons Outlined",
@@ -21155,7 +21162,14 @@
         ],
         "version": "v109",
         "lastModified": "2023-03-08",
-        "category": "monospace"
+        "category": "monospace",
+        "axes": [],
+        "designers": [
+            "Google"
+        ],
+        "isNoto": false,
+        "isOpenSource": true,
+        "isBrandFont": false
     },
     "Material Icons Round": {
         "family": "Material Icons Round",
@@ -21167,7 +21181,14 @@
         ],
         "version": "v108",
         "lastModified": "2023-03-21",
-        "category": "monospace"
+        "category": "monospace",
+        "axes": [],
+        "designers": [
+            "Google"
+        ],
+        "isNoto": false,
+        "isOpenSource": true,
+        "isBrandFont": false
     },
     "Material Icons Sharp": {
         "family": "Material Icons Sharp",
@@ -21179,7 +21200,14 @@
         ],
         "version": "v109",
         "lastModified": "2023-03-08",
-        "category": "monospace"
+        "category": "monospace",
+        "axes": [],
+        "designers": [
+            "Google"
+        ],
+        "isNoto": false,
+        "isOpenSource": true,
+        "isBrandFont": false
     },
     "Material Icons Two Tone": {
         "family": "Material Icons Two Tone",
@@ -21194,7 +21222,14 @@
         "category": "monospace",
         "colorCapabilities": [
             "COLRv0"
-        ]
+        ],
+        "axes": [],
+        "designers": [
+            "Google"
+        ],
+        "isNoto": false,
+        "isOpenSource": true,
+        "isBrandFont": false
     },
     "Material Symbols Outlined": {
         "family": "Material Symbols Outlined",
@@ -21212,7 +21247,35 @@
         ],
         "version": "v195",
         "lastModified": "2024-07-01",
-        "category": "monospace"
+        "category": "monospace",
+        "axes": [
+            {
+                "tag": "FILL",
+                "min": 0,
+                "max": 1
+            },
+            {
+                "tag": "GRAD",
+                "min": -50,
+                "max": 200
+            },
+            {
+                "tag": "opsz",
+                "min": 20,
+                "max": 48
+            },
+            {
+                "tag": "wght",
+                "min": 100,
+                "max": 700
+            }
+        ],
+        "designers": [
+            "Google"
+        ],
+        "isNoto": false,
+        "isOpenSource": true,
+        "isBrandFont": false
     },
     "Material Symbols Rounded": {
         "family": "Material Symbols Rounded",
@@ -21230,7 +21293,35 @@
         ],
         "version": "v193",
         "lastModified": "2024-07-01",
-        "category": "monospace"
+        "category": "monospace",
+        "axes": [
+            {
+                "tag": "FILL",
+                "min": 0,
+                "max": 1
+            },
+            {
+                "tag": "GRAD",
+                "min": -50,
+                "max": 200
+            },
+            {
+                "tag": "opsz",
+                "min": 20,
+                "max": 48
+            },
+            {
+                "tag": "wght",
+                "min": 100,
+                "max": 700
+            }
+        ],
+        "designers": [
+            "Google"
+        ],
+        "isNoto": false,
+        "isOpenSource": true,
+        "isBrandFont": false
     },
     "Material Symbols Sharp": {
         "family": "Material Symbols Sharp",
@@ -21248,7 +21339,35 @@
         ],
         "version": "v191",
         "lastModified": "2024-07-01",
-        "category": "monospace"
+        "category": "monospace",
+        "axes": [
+            {
+                "tag": "FILL",
+                "min": 0,
+                "max": 1
+            },
+            {
+                "tag": "GRAD",
+                "min": -50,
+                "max": 200
+            },
+            {
+                "tag": "opsz",
+                "min": 20,
+                "max": 48
+            },
+            {
+                "tag": "wght",
+                "min": 100,
+                "max": 700
+            }
+        ],
+        "designers": [
+            "Google"
+        ],
+        "isNoto": false,
+        "isOpenSource": true,
+        "isBrandFont": false
     },
     "Maven Pro": {
         "family": "Maven Pro",
