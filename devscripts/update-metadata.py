@@ -34,7 +34,6 @@ for item in res.json()["items"]:
     if item["family"].startswith("Material"):
         item["axes"] = []
         item["designers"] = ["Google"]
-        item["isNoto"] = False
         item["isOpenSource"] = True
         item["isBrandFont"] = False
 
@@ -54,10 +53,10 @@ res.raise_for_status()
 
 for item in res.json()["familyMetadataList"]:
     family = families[item["family"]]
-    for prop in ["axes", "designers", "isNoto", "isOpenSource", "isBrandFont"]:
+    for prop in ["axes", "designers", "isOpenSource", "isBrandFont"]:
         if prop not in family:
             family[prop] = item[prop]
 
-with open("src/gfont/data/families.json", "w") as file:
+with open(os.path.join(os.path.dirname(__file__), "../src/gfont/data/families.json"), "w") as file:
     file.write(json.dumps(families, indent=4) + "\n")
     file.close()
