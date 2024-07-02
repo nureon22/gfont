@@ -201,10 +201,12 @@ def resolve_family_name(family: str, exact: bool = False) -> str:
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(exact, bool, "Second argument 'exact' must be 'bool'")
 
+    family = re.sub(r'[-_]', ' ', family)
+
     if family in get_families():
         return family
 
-    families = search_families([family.replace("_", " ")], exact)
+    families = search_families([family], exact)
 
     if len(families) == 0:
         utils.family_not_found(family, True)
