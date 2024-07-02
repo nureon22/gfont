@@ -145,6 +145,7 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
         content = json.dumps(metadata, indent=4)
     else:
         modifiedDate = datetime.fromisoformat(metadata['lastModified']).strftime('%a, %b %d %Y')
+        axes = [f"@{x['tag']}[{x['min']} > {x['max']}]" for x in metadata["axes"]] if metadata["axes"] else None
 
         content = ""
         content += f"\033[01;34m{metadata['family']}\033[0m\n"
@@ -152,7 +153,8 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
         content += f"\033[34mVersion\033[0m    : {metadata['version']}\n"
         content += f"\033[34mCategory\033[0m   : {metadata['category']}\n"
         content += f"\033[34mSubsets\033[0m    : {', '.join(metadata['subsets'])}\n"
-        content += f"\033[34mFonts\033[0m      : {', '.join(metadata['variants'])}\n"
+        content += f"\033[34mVariants\033[0m   : {', '.join(metadata['variants'])}\n"
+        content += f"\033[34mAxes\033[0m       : {', '.join(axes)}\n" if axes else ""
         content += f"\033[34mDesigners\033[0m  : {', '.join(metadata['designers'])}\n"
         content += f"\033[34mModified\033[0m   : {modifiedDate}\n"
         content += f"\033[34mOpenSource\033[0m : {metadata['isOpenSource']}"
