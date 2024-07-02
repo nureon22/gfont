@@ -3,6 +3,9 @@ import argparse
 from . import gfontlibs as libs, utils
 from .constants import VERSION
 
+IS_ASSUME_YES = False
+IS_NO_CACHE = False
+
 
 def search_command(args):
     installed_families = libs.get_installed_families()
@@ -43,16 +46,16 @@ def install_command(args):
     families = [libs.resolve_family_name(family, True) for family in args.family[0]]
     question = 'Installing: \n  \033[34m{}\033[0m\nDo you want to continue?'.format('\033[0m\n  \033[34m'.join(families))
 
-    if libs.IS_ASSUME_YES or utils.ask_yes_no(question):
+    if IS_ASSUME_YES or utils.ask_yes_no(question):
         for family in families:
-            libs.download_family(family)
+            libs.download_family(family, IS_NO_CACHE)
 
 
 def remove_command(args):
     families = [libs.resolve_family_name(family, True) for family in args.family[0]]
     question = 'Removing: \n  \033[34m{}\033[0m\nDo you want to continue?'.format('\033[0m\n  \033[34m'.join(families))
 
-    if libs.IS_ASSUME_YES or utils.ask_yes_no(question):
+    if IS_ASSUME_YES or utils.ask_yes_no(question):
         for family in families:
             libs.remove_family(family)
 
@@ -61,9 +64,9 @@ def update_command(args):
     families = libs.get_installed_families()
     question = 'Updating: \n  \033[34m{}\033[0m\nDo you want to continue?'.format('\033[0m\n  \033[34m'.join(families))
 
-    if libs.IS_ASSUME_YES or utils.ask_yes_no(question):
+    if IS_ASSUME_YES or utils.ask_yes_no(question):
         for family in families:
-            libs.download_family(family)
+            libs.download_family(family, IS_NO_CACHE)
 
 
 def preview_command(args):
@@ -150,14 +153,17 @@ def main():
 
     args = argparser.parse_args()
 
+    global IS_ASSUME_YES
+    global IS_NO_CACHE
+
     if "version" in args and args.version:
         print(VERSION)
 
     if "yes" in args and args.yes:
-        libs.IS_ASSUME_YES = True
+        IS_ASSUME_YES = True
 
     if "no_cache" in args and args.no_cache:
-        libs.IS_NO_CACHE = True
+        IS_NO_CACHE = True
 
     if "func" in args:
         args.func(args)

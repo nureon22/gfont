@@ -16,9 +16,6 @@ from requests import request
 from . import utils
 from .constants import *
 
-IS_ASSUME_YES = False
-IS_NO_CACHE = False
-
 __families: Dict[str, Dict] = {}
 
 
@@ -231,7 +228,7 @@ def download_fonts(fonts: List[Dict], dir: str, nocache: bool = False):
         filepath = os.path.join(dir, font["filename"])
         current = str(fonts.index(font) + 1).rjust(total_width, "0")
 
-        if os.path.isfile(filepath) and not nocache and not IS_NO_CACHE:
+        if os.path.isfile(filepath) and not nocache:
             utils.log("info", f"({current}/{total}) Use cached {font['filename']}")
             return time.sleep(0.1)
 
@@ -243,7 +240,7 @@ def download_fonts(fonts: List[Dict], dir: str, nocache: bool = False):
     utils.thread_pool_loop(_download, fonts)
 
 
-def download_family(family: str):
+def download_family(family: str, nocache: bool = False):
     """Download complete set of given font family"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -257,7 +254,7 @@ def download_family(family: str):
         utils.write_file(os.path.join(FONTS_DIR, subdir, manifest["filename"]), manifest["contents"])
 
     lastModified = datetime.fromisoformat(get_families()[family]["lastModified"])
-    download_fonts(files["fonts"], subdir, lastModified.timestamp() > time.time())
+    download_fonts(files["fonts"], subdir, nocache or lastModified.timestamp() > time.time())
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
