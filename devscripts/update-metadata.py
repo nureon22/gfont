@@ -26,24 +26,14 @@ res.raise_for_status()
 families = {}
 
 for item in res.json()["items"]:
-    del item["files"]
     del item["menu"]
     del item["kind"]
     item["variants"] = resolve_variants(item["variants"])
 
     if item["family"].startswith("Material"):
-        item["axes"] = []
         item["designers"] = ["Google"]
         item["isOpenSource"] = True
         item["isBrandFont"] = False
-
-    if item["family"].startswith("Material Symbols"):
-        item["axes"] = [
-            {"tag": "FILL", "min": 0, "max": 1},
-            {"tag": "GRAD", "min": -50, "max": 200},
-            {"tag": "opsz", "min": 20, "max": 48},
-            {"tag": "wght", "min": 100, "max": 700},
-        ]
 
     families[item["family"]] = item
 
@@ -53,7 +43,7 @@ res.raise_for_status()
 
 for item in res.json()["familyMetadataList"]:
     family = families[item["family"]]
-    for prop in ["axes", "designers", "isOpenSource", "isBrandFont"]:
+    for prop in ["designers", "isOpenSource", "isBrandFont"]:
         if prop not in family:
             family[prop] = item[prop]
 

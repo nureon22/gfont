@@ -112,3 +112,20 @@ def thread_pool_loop(func, items, *args):
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [executor.submit(func, item, *args) for item in items]
         return [future.result() for future in as_completed(futures)]
+
+
+def resolve_variant(variant: str, short: bool = False):
+    _variant = variant
+
+    if variant == "regular":
+        variant = "400"
+    if variant == "italic":
+        variant = "400i"
+
+    variant = variant.replace("italic", "i")
+
+    if variant not in FONT_VARIANT_STANDARD_NAMES:
+        log("ERROR", f"Font variant '{_variant}' is not valid")
+        sys.exit(1)
+
+    return variant if short else FONT_VARIANT_STANDARD_NAMES[variant]

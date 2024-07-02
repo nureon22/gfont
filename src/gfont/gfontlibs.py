@@ -47,24 +47,6 @@ def get_families() -> Dict[str, Dict]:
     return __families
 
 
-def get_files(family: str) -> Dict[str, List]:
-    "Get manifest and fonts files for the family"
-
-    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
-
-    family = resolve_family_name(family)
-
-    res = request("GET", f"https://fonts.google.com/download/list?family={family}", timeout=REQUEST_TIMEOUT)
-    res.raise_for_status()
-
-    # https://fonts.google.com/download/list?family={family} return )]}' at the
-    # beginning of the response. I don't know why. But this will make json parser
-    # to fail.
-    data = json.loads(res.text[4:] if res.text.startswith(")]}'") else res.text)
-
-    return {"manifest": data["manifest"]["files"], "fonts": data["manifest"]["fileRefs"]}
-
-
 def get_webfonts_css(
     family: str, woff2: bool = False, variants: Optional[List[str]] = None, text: Optional[str] = None
 ) -> str:
@@ -123,7 +105,16 @@ def get_license_content(family: str) -> str:
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    for manifest in get_files(family)["manifest"]:
+    family = resolve_family_name(family)
+
+    res = request("GET", f"https://fonts.google.com/download/list?family={family}", timeout=REQUEST_TIMEOUT)
+    res.raise_for_status()
+
+    # https://fonts.google.com/download/list?family={family} return )]}' at the beginning
+    # of the response. I don't know why. But this will make json parser to fail.
+    files = json.loads(re.sub(r"^\)\]\}'", "", res.text))["manifest"]["files"]
+
+    for manifest in files:
         if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
             return manifest["contents"]
 
@@ -147,19 +138,17 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
         content = json.dumps(metadata, indent=4)
     else:
         modifiedDate = datetime.fromisoformat(metadata['lastModified']).strftime('%a, %b %d %Y')
-        axes = [f"@{x['tag']}[{x['min']} > {x['max']}]" for x in metadata["axes"]] if metadata["axes"] else None
 
         content = ""
         content += f"\033[01;34m{metadata['family']}\033[0m\n"
         content += "------------\n"
-        content += f"\033[34mVersion\033[0m    : {metadata['version']}\n"
-        content += f"\033[34mCategory\033[0m   : {metadata['category']}\n"
-        content += f"\033[34mSubsets\033[0m    : {', '.join(metadata['subsets'])}\n"
-        content += f"\033[34mVariants\033[0m   : {', '.join(metadata['variants'])}\n"
-        content += f"\033[34mAxes\033[0m       : {', '.join(axes)}\n" if axes else ""
-        content += f"\033[34mDesigners\033[0m  : {', '.join(metadata['designers'])}\n"
-        content += f"\033[34mModified\033[0m   : {modifiedDate}\n"
-        content += f"\033[34mOpenSource\033[0m : {metadata['isOpenSource']}"
+        content += f"\033[34mVersion\033[0m      : {metadata['version']}\n"
+        content += f"\033[34mCategory\033[0m     : {metadata['category']}\n"
+        content += f"\033[34mSubsets\033[0m      : {', '.join(metadata['subsets'])}\n"
+        content += f"\033[34mVariants\033[0m     : {', '.join(metadata['variants'])}\n"
+        content += f"\033[34mDesigners\033[0m    : {', '.join(metadata['designers'])}\n"
+        content += f"\033[34mLastModified\033[0m : {modifiedDate}\n"
+        content += f"\033[34mOpenSource\033[0m   : {metadata['isOpenSource']}"
 
     return content
 
@@ -252,15 +241,20 @@ def download_family(family: str, nocache: bool = False):
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
     family = resolve_family_name(family)
-    files = get_files(family)
+    files = get_families()[family]["files"]
 
     subdir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
 
-    for manifest in files["manifest"]:
-        utils.write_file(os.path.join(FONTS_DIR, subdir, manifest["filename"]), manifest["contents"])
+    fonts = [
+        {
+            "filename": f"{family.replace(' ', '_')}-{utils.resolve_variant(x)}{os.path.splitext(files[x])[1]}",
+            "url": files[x]
+        }
+        for x in files
+    ]
 
     lastModified = datetime.fromisoformat(get_families()[family]["lastModified"])
-    download_fonts(family, files["fonts"], subdir, nocache or lastModified.timestamp() > time.time())
+    download_fonts(family, fonts, subdir, nocache or lastModified.timestamp() > time.time())
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
@@ -298,7 +292,7 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
         res = request("GET", f"https://fonts.google.com/sampletext?family={family.replace(' ', '+')}")
         res.raise_for_status()
 
-        preview_text = str(json.loads(res.text[4:])["sampleText"]["specimen48"])
+        preview_text = str(json.loads(re.sub(r"^\)\]\}'", "", res.text))["sampleText"]["specimen48"])
     else:
         utils.isinstance_check(preview_text, str, "Second argument 'preview_text' must be 'None' or 'str'")
 
