@@ -23,6 +23,10 @@
 
 ## Installation
 
+**Note:** For linux, pipx is recommended instead of pip
+
+### Using pip
+
 ```sh
 git clone https://github.com/nureon22/gfont.git <dir>
 
@@ -33,7 +37,10 @@ sh devscripts/build.sh
 pip install dist/gfont-<version>-py3-none-any.whl
 ```
 
-**Note:** For linux, pipx is recommended instead of pip
+### Using pipx
+```sh
+pipx install "git+https://github.com/nureon22/gfont.git"
+```
 
 ### Requirements
 
