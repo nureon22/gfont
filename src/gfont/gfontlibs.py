@@ -43,6 +43,7 @@ def get_families() -> Dict[str, Dict]:
     else:
         __families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
 
+    __families = dict(sorted(__families.items()))
     return __families
 
 
@@ -111,6 +112,7 @@ def get_installed_families() -> List[str]:
         if not dir.startswith("."):
             families.append(dir.replace("_", " "))
 
+    families.sort()
     return families
 
 
