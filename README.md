@@ -2,6 +2,8 @@
 
 ⚠️ **Warning:** this project is still in development and doesn't support the Windows yet
 
+**Note:** If you encounter some errors, clean cache files described at the end of the page.
+
 - [Installation](#installation)
   - [Requirements](#requirements)
     - [Runtime Dependencies](#runtime-dependencies)
