@@ -36,7 +36,7 @@ def get_families() -> Dict[str, Dict]:
         refresh = True
 
     if refresh:
-        res = request("GET", "https://fonts.google.com/metadata/fonts", timeout=REQUEST_TIMEOUT)
+        res = request("GET", "https://githubusercontent.com/nureon22/gfont/main/src/data/families.json", timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
         for item in res.json()["familyMetadataList"]:
@@ -84,7 +84,7 @@ def get_webfonts_css(
     url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
 
     if variants:
-        all_variants = list(get_families()[family]["fonts"].keys())  # type: ignore
+        all_variants = get_families()[family]["variants"]  # type: ignore
 
         for variant in variants:
             if variant not in all_variants:
@@ -148,13 +148,17 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
     if isRaw:
         content = json.dumps(metadata, indent=4)
     else:
+        modifiedDate = datetime.fromisoformat(metadata['lastModified']).strftime('%a, %b %d %Y')
+
         content = ""
         content += f"\033[01;34m{metadata['family']}\033[0m\n"
         content += "------------\n"
+        content += f"\033[34mVersion\033[0m    : {metadata['version']}\n"
         content += f"\033[34mCategory\033[0m   : {metadata['category']}\n"
         content += f"\033[34mSubsets\033[0m    : {', '.join(metadata['subsets'])}\n"
-        content += f"\033[34mFonts\033[0m      : {', '.join(list(metadata['fonts'].keys()))}\n"
+        content += f"\033[34mFonts\033[0m      : {', '.join(metadata['variants'])}\n"
         content += f"\033[34mDesigners\033[0m  : {', '.join(metadata['designers'])}\n"
+        content += f"\033[34mModified\033[0m   : {modifiedDate}\n"
         content += f"\033[34mOpenSource\033[0m : {metadata['isOpenSource']}"
 
     return content
@@ -328,7 +332,7 @@ def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
     if variants is not None:
         utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
     else:
-        variants = list(get_families()[family]["fonts"].keys())
+        variants = get_families()[family]["variants"]
 
     family = resolve_family_name(family)
 
