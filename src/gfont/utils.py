@@ -27,14 +27,17 @@ def log(level: str, message: str, **kwargs):
     print(f"{LOG_COLORS[level.upper()]}{level.upper()}: {message}{LOG_COLORS['RESET']}", **kwargs)
 
 
-def ask_yes_no(question: str) -> bool:
+def ask_yes_no(question: str, default: str = "yes") -> bool:
     isinstance_check(question, str, "First argument 'question' must be 'str'")
 
-    return (input(f"{question} [y|N] ") or "N").upper().strip()[0] == "Y"
+    if default == "yes":
+        return (input(f"{question} [Y|n] ") or "Y").upper().strip()[0] == "Y"
+    else:
+        return (input(f"{question} [y|N] ") or "N").upper().strip()[0] == "Y"
 
 
 def family_not_found(family_name, exit=True):
-    log("error", f"'{family_name}' cannot be found")
+    log("error", f"Family '{family_name}' cannot be found")
 
     if exit:
         sys.exit(1)

@@ -68,7 +68,9 @@ def get_files(family: str) -> Dict[str, List]:
     return {"manifest": data["manifest"]["files"], "fonts": data["manifest"]["fileRefs"]}
 
 
-def get_webfonts_css(family: str, woff2: bool = False, variants: Optional[List[str]] = None, text: Optional[str] = None) -> str:
+def get_webfonts_css(
+    family: str, woff2: bool = False, variants: Optional[List[str]] = None, text: Optional[str] = None
+) -> str:
     """Return CSS content of a font family"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -222,9 +224,17 @@ def download_fonts(fonts: List[Dict], dir: str, nocache: bool = False):
     total_width = len(str(total))
 
     def _download(font):
-        utils.log("info", f"({str(fonts.index(font) + 1).rjust(total_width, '0')}/{total}) Downloading {font['filename']}")
+        filepath = os.path.join(dir, font["filename"])
+        current = str(fonts.index(font) + 1).rjust(total_width, "0")
 
-        utils.download_file(font["url"], f"{dir}/{font['filename']}", (0 if nocache or IS_NO_CACHE else FONT_CACHE_AGE))
+        if os.path.isfile(filepath) and not nocache and not IS_NO_CACHE:
+            utils.log("info", f"({current}/{total}) Use cached {font['filename']}")
+            return time.sleep(0.1)
+
+        utils.log("info", f"({current}/{total}) Downloading {font['filename']}")
+        res = request("GET", font["url"], timeout=10)
+        res.raise_for_status()
+        utils.write_bytes_file(filepath, res.content)
 
     utils.thread_pool_loop(_download, fonts)
 
@@ -242,7 +252,7 @@ def download_family(family: str):
     for manifest in files["manifest"]:
         utils.write_file(os.path.join(FONTS_DIR, subdir, manifest["filename"]), manifest["contents"])
 
-    lastModified = datetime.fromisoformat(get_families()[family]['lastModified'])
+    lastModified = datetime.fromisoformat(get_families()[family]["lastModified"])
     download_fonts(files["fonts"], subdir, lastModified.timestamp() > time.time())
 
     if shutil.which("fc-cache"):

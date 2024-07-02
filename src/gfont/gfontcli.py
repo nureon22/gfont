@@ -41,27 +41,27 @@ def list_command(args):
 
 def install_command(args):
     families = [libs.resolve_family_name(family, True) for family in args.family[0]]
+    question = 'Installing: \n  \033[34m{}\033[0m\nDo you want to continue?'.format('\033[0m\n  \033[34m'.join(families))
 
-    if libs.IS_ASSUME_YES or utils.ask_yes_no('Installing "{}"\nDo you want to continue'.format('", "'.join(families))):
+    if libs.IS_ASSUME_YES or utils.ask_yes_no(question):
         for family in families:
             libs.download_family(family)
 
 
 def remove_command(args):
     families = [libs.resolve_family_name(family, True) for family in args.family[0]]
+    question = 'Removing: \n  \033[34m{}\033[0m\nDo you want to continue?'.format('\033[0m\n  \033[34m'.join(families))
 
-    if libs.IS_ASSUME_YES or utils.ask_yes_no('Removing "{}"\nDo you want to continue'.format('", "'.join(families))):
+    if libs.IS_ASSUME_YES or utils.ask_yes_no(question):
         for family in families:
             libs.remove_family(family)
 
 
 def update_command(args):
     families = libs.get_installed_families()
+    question = 'Updating: \n  \033[34m{}\033[0m\nDo you want to continue?'.format('\033[0m\n  \033[34m'.join(families))
 
-    print("Updating following families:")
-    print("\n".join(families))
-
-    if libs.IS_ASSUME_YES or utils.ask_yes_no('Do you want to continue?'):
+    if libs.IS_ASSUME_YES or utils.ask_yes_no(question):
         for family in families:
             libs.download_family(family)
 
