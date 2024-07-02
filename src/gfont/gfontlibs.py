@@ -33,11 +33,10 @@ def get_families() -> Dict[str, Dict]:
         refresh = True
 
     if refresh:
-        res = request("GET", "https://githubusercontent.com/nureon22/gfont/main/src/data/families.json", timeout=REQUEST_TIMEOUT)
+        res = request("GET", "https://raw.githubusercontent.com/nureon22/gfont/main/src/gfont/data/families.json", timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
-        for item in res.json()["familyMetadataList"]:
-            __families[item["family"]] = item
+        __families = res.json()
 
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
         utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
