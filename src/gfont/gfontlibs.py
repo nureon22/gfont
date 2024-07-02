@@ -217,14 +217,15 @@ def resolve_family_name(family: str, exact: bool = False) -> str:
     return families[0]
 
 
-def download_fonts(fonts: List[Dict], dir: str, nocache: bool = False):
+def download_fonts(family: str, fonts: List[Dict], dir: str, nocache: bool = False):
     """Download the given font, not complete set of font family.
 
-    :param font: dictionary that hold information of a font, should contains 'filename' and 'url' properties.
+    :param fonts: List of dictionary that hold information of a font, should contains 'filename' and 'url' properties.
     """
 
-    utils.isinstance_check(fonts, List, "First argument 'fonts' must be 'List'")
-    utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
+    utils.isinstance_check(fonts, List, "Second argument 'fonts' must be 'List'")
+    utils.isinstance_check(dir, str, "Third argument 'dir' must be 'str'")
 
     total = len(fonts)
     total_width = len(str(total))
@@ -233,11 +234,11 @@ def download_fonts(fonts: List[Dict], dir: str, nocache: bool = False):
         filepath = os.path.join(dir, font["filename"])
         current = str(fonts.index(font) + 1).rjust(total_width, "0")
 
-        if os.path.isfile(filepath) and not nocache:
-            utils.log("info", f"({current}/{total}) Use cached {font['filename']}")
-            return time.sleep(0.1)
+        print(f"Downloading '{family}' ({current}/{total})", end="\033[K\r")
 
-        utils.log("info", f"({current}/{total}) Downloading {font['filename']}")
+        if os.path.isfile(filepath) and not nocache:
+            return time.sleep(0.05)
+
         res = request("GET", font["url"], timeout=10)
         res.raise_for_status()
         utils.write_bytes_file(filepath, res.content)
@@ -259,12 +260,12 @@ def download_family(family: str, nocache: bool = False):
         utils.write_file(os.path.join(FONTS_DIR, subdir, manifest["filename"]), manifest["contents"])
 
     lastModified = datetime.fromisoformat(get_families()[family]["lastModified"])
-    download_fonts(files["fonts"], subdir, nocache or lastModified.timestamp() > time.time())
+    download_fonts(family, files["fonts"], subdir, nocache or lastModified.timestamp() > time.time())
 
     if shutil.which("fc-cache"):
         os.system("fc-cache")
 
-    utils.log("info", "Installation '{}' finished.".format(family))
+    print(f"Installation '{family}' finished.")
 
 
 def remove_family(family: str):
@@ -281,7 +282,7 @@ def remove_family(family: str):
         if shutil.which("fc-cache"):
             os.system("fc-cache")
 
-        utils.log("info", "Removing '{}' finished".format(family))
+        print("Removing '{}' finished".format(family))
 
 
 def preview_family(family: str, preview_text: Optional[str] = None, font_size: int = 48):
@@ -345,9 +346,9 @@ def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
     woff_fonts = list(set(re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)))
     fonts = [{"url": font, "filename": os.path.basename(font)} for font in woff_fonts]
 
-    download_fonts(fonts, f"{subdir}/fonts")
+    download_fonts(family, fonts, f"{subdir}/fonts", True)
 
     webfonts_css = re.sub(r"https://fonts.gstatic.com/.+/", "fonts/", webfonts_css)
     utils.write_file(f"{subdir}/{family.replace(' ', '_')}.css", webfonts_css)
 
-    utils.log("info", "Packing webfonts finished.")
+    print(f"Packing '{family}' webfonts finished.")
