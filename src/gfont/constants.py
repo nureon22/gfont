@@ -41,3 +41,9 @@ FONT_VARIANT_STANDARD_NAMES = {
     "900": "Black",
     "900i": "BlackItalic",
 }
+
+LICENSES = {
+    "apache2": ["Apache-2.0", "https://opensource.org/license/apache-2-0"],
+    "ofl": ["OFL-1.1", "https://opensource.org/license/ofl-1-1"],
+    "ufl": ["UFL-1.0", "http://font.ubuntu.com/ufl/"],
+}

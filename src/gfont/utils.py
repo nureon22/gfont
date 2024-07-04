@@ -36,13 +36,6 @@ def ask_yes_no(question: str, default: str = "yes") -> bool:
         return (input(f"{question} [y|N] ") or "N").upper().strip()[0] == "Y"
 
 
-def family_not_found(family_name, exit=True):
-    log("error", f"Family '{family_name}' cannot be found")
-
-    if exit:
-        sys.exit(1)
-
-
 def split_long_text(text: str, max_length: int):
     """
     Add line break at every {max_length} words

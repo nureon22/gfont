@@ -19,6 +19,7 @@ from .constants import (
     CACHE_DIR,
     CACHE_FILE,
     FONTS_DIR,
+    LICENSES,
     METADATA_CACHE_AGE,
     REQUEST_TIMEOUT,
 )
@@ -53,19 +54,13 @@ def get_families() -> List[str]:
         for item in res.json()["items"]:
             item["variants"] = utils.resolve_variants(item["variants"], True)
 
-            if item["family"].startswith("Material"):
+            if item["family"].startswith("Material "):
                 item["designers"] = ["Google"]
+                item["license"] = "apache2"
 
             __families[item["family"]] = item
 
-        res = request("GET", "https://fonts.google.com/metadata/fonts", timeout=REQUEST_TIMEOUT)
-        res.raise_for_status()
-
-        for item in res.json()["familyMetadataList"]:
-            __families[item["family"]]["designers"] = item["designers"]
-
-        os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
-        utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
+        utils.write_file(CACHE_FILE, json.dumps(__families))
     else:
         __families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
 
@@ -77,7 +72,17 @@ def get_metadata(family: str):
     """Get metadata of the family"""
 
     family = resolve_family(family)
-    return __families[family]
+    metadata = __families[family]
+
+    if "designers" not in metadata or "license" not in metadata:
+        res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
+        res.raise_for_status()
+        data = json.loads(res.text.replace(")]}'", "", 1))
+        metadata["designers"] = [x["name"] for x in data["designers"]]
+        metadata["license"] = data["license"]
+        utils.write_file(CACHE_FILE, json.dumps(__families))
+
+    return metadata
 
 
 def get_webfonts_css(
@@ -175,11 +180,12 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
         content = ""
         content += f"\033[01;34m{metadata['family']}\033[0m\n"
         content += "------------\n"
-        content += f"\033[34mVersion\033[0m      : {metadata['version']}\n"
-        content += f"\033[34mCategory\033[0m     : {metadata['category']}\n"
-        content += f"\033[34mSubsets\033[0m      : {', '.join(metadata['subsets'])}\n"
-        content += f"\033[34mVariants\033[0m     : {', '.join(metadata['variants'])}\n"
-        content += f"\033[34mDesigners\033[0m    : {', '.join(metadata['designers'])}"
+        content += f"\033[34mVersion\033[0m   : {metadata['version']}\n"
+        content += f"\033[34mCategory\033[0m  : {metadata['category']}\n"
+        content += f"\033[34mSubsets\033[0m   : {', '.join(metadata['subsets'])}\n"
+        content += f"\033[34mVariants\033[0m  : {', '.join(metadata['variants'])}\n"
+        content += f"\033[34mDesigners\033[0m : {', '.join(metadata['designers'])}\n"
+        content += f"\033[34mLicense\033[0m   : {LICENSES[metadata['license']][0]}"
 
     return content
 
@@ -224,17 +230,19 @@ def resolve_family(family: str, exact: bool = False) -> str:
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(exact, bool, "Second argument 'exact' must be 'bool'")
 
+    _family = family
     family = re.sub(r'[-_]', ' ', family)
+    families = get_families()
 
-    if family in get_families():
+    if family in families:
         return family
 
-    families = search_families([family], exact)
+    for x in families:
+        if x.lower() == family:
+            return x
 
-    if len(families) == 0:
-        utils.family_not_found(family, True)
-
-    return families[0]
+    utils.log("Error", f"Family '{_family}' cannot be found")
+    sys.exit(1)
 
 
 def download_fonts(family: str, fonts: List[Dict], dir: str, nocache: bool = False):
