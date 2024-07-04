@@ -5,11 +5,7 @@ import shutil
 import sys
 import time
 from datetime import datetime
-from typing import (
-    Dict,
-    List,
-    Optional,
-)
+from typing import Dict, List
 
 from requests import request
 
@@ -26,13 +22,13 @@ from .constants import (
 __families: Dict[str, Dict] = {}
 
 
-def get_families() -> Dict[str, Dict]:
-    """Get families and its metadata as a dict"""
+def get_families() -> List[str]:
+    """Get a list of all families"""
 
     global __families
 
     if __families:
-        return __families
+        return list(__families.keys())
 
     if os.path.isfile(CACHE_FILE):
         refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > METADATA_CACHE_AGE
@@ -70,11 +66,18 @@ def get_families() -> Dict[str, Dict]:
         __families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
 
     __families = dict(sorted(__families.items()))
-    return __families
+    return list(__families.keys())
+
+
+def get_metadata(family: str):
+    """Get metadata of the family"""
+
+    family = resolve_family(family)
+    return __families[family]
 
 
 def get_webfonts_css(
-    family: str, woff2: bool = False, variants: Optional[List[str]] = None, text: Optional[str] = None
+    family: str, woff2: bool = False, variants: List[str] | None = None, text: str | None = None
 ) -> str:
     """Return CSS content of a font family"""
 
@@ -84,12 +87,12 @@ def get_webfonts_css(
     if variants is not None:
         utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
 
-    family = resolve_family_name(family)
+    family = resolve_family(family)
 
     url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
 
     if variants:
-        all_variants = get_families()[family]["variants"]  # type: ignore
+        all_variants = get_metadata(family)["variants"]  # type: ignore
 
         for variant in variants:
             if variant not in all_variants:
@@ -114,7 +117,7 @@ def get_webfonts_css(
 def get_installed_families() -> List[str]:
     """Get installed font families"""
 
-    all_families = list(get_families().keys())
+    all_families = get_families()
     installed_families = []
 
     for dir in os.listdir(FONTS_DIR) if os.path.isdir(FONTS_DIR) else []:
@@ -126,14 +129,14 @@ def get_installed_families() -> List[str]:
     return installed_families
 
 
-def get_license_content(family: str) -> str:
+def get_license(family: str) -> str:
     """
-    Get license of a font family. Not just license name, including its contents.
+    Get license of a font family. Not license name, including its contents.
     """
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family = resolve_family_name(family)
+    family = resolve_family(family)
 
     res = request("GET", f"https://fonts.google.com/download/list?family={family}", timeout=REQUEST_TIMEOUT)
     res.raise_for_status()
@@ -158,7 +161,7 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(isRaw, bool, "Second argument 'isRaw' must be 'bool'")
 
-    metadata = get_families()[family]
+    metadata = get_metadata(family)
 
     content = ""
 
@@ -211,7 +214,7 @@ def search_families(keywords: List[str], exact: bool = False) -> List[str]:
     return results
 
 
-def resolve_family_name(family: str, exact: bool = False) -> str:
+def resolve_family(family: str, exact: bool = False) -> str:
     """Resolve a font family name contains (case-insensitive,underscore) to valid name"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -259,25 +262,25 @@ def download_fonts(family: str, fonts: List[Dict], dir: str, nocache: bool = Fal
     utils.thread_pool_loop(_download, fonts)
 
 
-def download_family(family: str, nocache: bool = False):
+def install_family(family: str, nocache: bool = False):
     """Download complete set of given font family"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family = resolve_family_name(family)
-    files = get_families()[family]["files"]
+    family = resolve_family(family)
+    metadata = get_metadata(family)
 
     subdir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
 
     fonts = [
         {
-            "filename": f"{family.replace(' ', '_')}-{utils.resolve_variant(x, False)}{os.path.splitext(files[x])[1]}",
-            "url": files[x]
+            "filename": f"{family.replace(' ', '_')}-{utils.resolve_variant(variant, False)}{os.path.splitext(url)[1]}",
+            "url": url
         }
-        for x in files
+        for [variant, url] in metadata["files"].items()
     ]
 
-    lastModified = datetime.fromisoformat(get_families()[family]["lastModified"])
+    lastModified = datetime.fromisoformat(metadata["lastModified"])
     download_fonts(family, fonts, subdir, nocache or lastModified.timestamp() > time.time())
 
     if shutil.which("fc-cache"):
@@ -291,7 +294,7 @@ def remove_family(family: str):
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family = resolve_family_name(family)
+    family = resolve_family(family)
     dir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
 
     if os.path.isdir(dir):
@@ -303,14 +306,14 @@ def remove_family(family: str):
         print("Removing '{}' finished".format(family))
 
 
-def preview_family(family: str, preview_text: Optional[str] = None, font_size: int = 48):
+def preview_family(family: str, preview_text: str | None = None, font_size: int = 48):
     """
     Preview the given font using imagemagick
     """
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
-    family = resolve_family_name(family, True)
+    family = resolve_family(family, True)
 
     if preview_text is None:
         res = request("GET", f"https://fonts.google.com/sampletext?family={family.replace(' ', '+')}")
@@ -344,7 +347,7 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
         utils.log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
 
-def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
+def pack_webfonts(family: str, dir: str, variants: List[str] | None = None):
     """Pack a font family to use in websites as self-hosted fonts"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -353,9 +356,9 @@ def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
     if variants is not None:
         utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
     else:
-        variants = get_families()[family]["variants"]
+        variants = get_metadata(family)["variants"]
 
-    family = resolve_family_name(family)
+    family = resolve_family(family)
 
     webfonts_css = get_webfonts_css(family, woff2=True, variants=variants)
 

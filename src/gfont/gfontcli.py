@@ -19,9 +19,9 @@ def search_command(args):
 
 def info_command(args):
     if args.license:
-        print(libs.get_license_content(libs.resolve_family_name(args.family, True)))
+        print(libs.get_license(libs.resolve_family(args.family, True)))
     else:
-        print(libs.get_printable_info(libs.resolve_family_name(args.family, True), args.raw))
+        print(libs.get_printable_info(libs.resolve_family(args.family, True), args.raw))
 
 
 def list_command(args):
@@ -45,17 +45,17 @@ def list_command(args):
 def install_command(args):
     print("Installing:")
     for family in args.family[0]:
-        print(f"  \033[34m{libs.resolve_family_name(family, True)}\033[0m")
+        print(f"  \033[34m{libs.resolve_family(family, True)}\033[0m")
 
     if IS_ASSUME_YES or utils.ask_yes_no("Do you want to continue?"):
         for family in args.family[0]:
-            libs.download_family(family, IS_NO_CACHE)
+            libs.install_family(family, IS_NO_CACHE)
 
 
 def remove_command(args):
     print("Removing:")
     for family in args.family[0]:
-        print(f"  \033[34m{libs.resolve_family_name(family, True)}\033[0m")
+        print(f"  \033[34m{libs.resolve_family(family, True)}\033[0m")
 
     if IS_ASSUME_YES or utils.ask_yes_no("Do you want to continue?"):
         for family in args.family[0]:
@@ -71,7 +71,7 @@ def update_command(args):
 
     if IS_ASSUME_YES or utils.ask_yes_no("Do you want to continue?"):
         for family in families:
-            libs.download_family(family, IS_NO_CACHE)
+            libs.install_family(family, IS_NO_CACHE)
 
 
 def preview_command(args):
@@ -84,9 +84,9 @@ def webfont_command(args):
     for family in families:
         if ":" in family:
             [family, variants] = family.split(":")
-            libs.pack_webfonts(libs.resolve_family_name(family), args.dir, variants.split(","))
+            libs.pack_webfonts(libs.resolve_family(family), args.dir, variants.split(","))
         else:
-            libs.pack_webfonts(libs.resolve_family_name(family), args.dir)
+            libs.pack_webfonts(libs.resolve_family(family), args.dir)
 
 
 def main():
