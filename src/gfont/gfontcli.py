@@ -18,10 +18,7 @@ def search_command(args):
 
 
 def info_command(args):
-    if args.license:
-        print(libs.get_license(libs.resolve_family(args.family, True)))
-    else:
-        print(libs.get_printable_info(libs.resolve_family(args.family, True), args.raw))
+    print(libs.get_printable_info(libs.resolve_family(args.family, True), args.raw))
 
 
 def list_command(args):
@@ -105,7 +102,6 @@ def main():
 
     # info sub-command
     info_parser = subparsers.add_parser("info", help="show information of the font family")
-    info_parser.add_argument("--license", action="store_true", help="show license contents of the font family")
     info_parser.add_argument("--raw", action="store_true", help="show information in raw json format")
     info_parser.add_argument("family", help="name of the font family (case-insensitive)")
     info_parser.set_defaults(func=info_command)

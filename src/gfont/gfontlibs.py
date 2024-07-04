@@ -138,29 +138,6 @@ def get_installed_families() -> List[str]:
     return installed_families
 
 
-def get_license(family: str) -> str:
-    """
-    Get license of a font family. Not license name, including its contents.
-    """
-
-    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
-
-    family = resolve_family(family)
-
-    res = request("GET", f"https://fonts.google.com/download/list?family={family}", timeout=REQUEST_TIMEOUT)
-    res.raise_for_status()
-
-    # https://fonts.google.com/download/list?family={family} return )]}' at the beginning
-    # of the response. I don't know why. But this will make json parser to fail.
-    files = json.loads(re.sub(r"^\)\]\}'", "", res.text))["manifest"]["files"]
-
-    for manifest in files:
-        if manifest["filename"] == "LICENSE.txt" or manifest["filename"] == "OFL.txt":
-            return manifest["contents"]
-
-    return "License not found"
-
-
 def get_printable_info(family: str, isRaw: bool = False) -> str:
     """Get metadata of a specific font family in pretty print format
 
