@@ -14,7 +14,14 @@ from typing import (
 from requests import request
 
 from . import utils
-from .constants import *
+from .constants import (
+    BROWSER_USER_AGENT,
+    CACHE_DIR,
+    CACHE_FILE,
+    FONTS_DIR,
+    METADATA_CACHE_AGE,
+    REQUEST_TIMEOUT,
+)
 
 __families: Dict[str, Dict] = {}
 

@@ -6,7 +6,7 @@ from typing import List
 
 from requests import request
 
-from .constants import *
+from .constants import FONT_VARIANT_STANDARD_NAMES, MAX_WORKERS
 
 LOG_COLORS = {
     "DEBUG": "\033[34m",  # Blue
