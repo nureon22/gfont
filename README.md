@@ -25,9 +25,9 @@
 
 ## Google Fonts API
 
-By default, **gfont** doesn't need google font API key, instead it uses generated data/webfonts.json. This generated file won't be refreshed very often and contain older fonts. If you want more up-to-date fonts, add '**GOOGLE_FONTS_API_KEY**' environment variable inside ~/.bashrc or ~/.profile.
+By default, **gfont** doesn't need google font API key, instead it uses generated data/webfonts.json. This generated file won't be refreshed very often and contains older fonts. If you want more up-to-date fonts, add '**GOOGLE_FONTS_API_KEY**' environment variable inside ~/.bashrc or ~/.profile.
 
-See, [Google Fonts Developer API](https://developers.google.com/fonts/docs/developer_api) to generate your API key.
+See [Google Fonts Developer API](https://developers.google.com/fonts/docs/developer_api) to generate your API key.
 
 ## Installation
 

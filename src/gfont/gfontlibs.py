@@ -5,7 +5,11 @@ import shutil
 import sys
 import time
 from datetime import datetime
-from typing import Dict, List
+from typing import (
+    Dict,
+    List,
+    Optional,
+)
 
 from requests import request
 
@@ -77,7 +81,7 @@ def get_metadata(family: str):
 
 
 def get_webfonts_css(
-    family: str, woff2: bool = False, variants: List[str] | None = None, text: str | None = None
+    family: str, woff2: bool = False, variants: Optional[List[str]] = None, text: Optional[str] = None
 ) -> str:
     """Return CSS content of a font family"""
 
@@ -306,7 +310,7 @@ def remove_family(family: str):
         print("Removing '{}' finished".format(family))
 
 
-def preview_family(family: str, preview_text: str | None = None, font_size: int = 48):
+def preview_family(family: str, preview_text: Optional[str] = None, font_size: int = 48):
     """
     Preview the given font using imagemagick
     """
@@ -347,7 +351,7 @@ def preview_family(family: str, preview_text: str | None = None, font_size: int 
         utils.log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
 
-def pack_webfonts(family: str, dir: str, variants: List[str] | None = None):
+def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
     """Pack a font family to use in websites as self-hosted fonts"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
