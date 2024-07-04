@@ -48,7 +48,6 @@ def get_families() -> Dict[str, Dict]:
 
             if item["family"].startswith("Material"):
                 item["designers"] = ["Google"]
-                item["isOpenSource"] = True
 
             __families[item["family"]] = item
 
@@ -57,7 +56,6 @@ def get_families() -> Dict[str, Dict]:
 
         for item in res.json()["familyMetadataList"]:
             __families[item["family"]]["designers"] = item["designers"]
-            __families[item["family"]]["isOpenSource"] = item["isOpenSource"]
 
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
         utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
@@ -158,8 +156,6 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
     if isRaw:
         content = json.dumps(metadata, indent=4)
     else:
-        modifiedDate = datetime.fromisoformat(metadata['lastModified']).strftime('%a, %b %d %Y')
-
         content = ""
         content += f"\033[01;34m{metadata['family']}\033[0m\n"
         content += "------------\n"
@@ -167,9 +163,7 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
         content += f"\033[34mCategory\033[0m     : {metadata['category']}\n"
         content += f"\033[34mSubsets\033[0m      : {', '.join(metadata['subsets'])}\n"
         content += f"\033[34mVariants\033[0m     : {', '.join(metadata['variants'])}\n"
-        content += f"\033[34mDesigners\033[0m    : {', '.join(metadata['designers'])}\n"
-        content += f"\033[34mLastModified\033[0m : {modifiedDate}\n"
-        content += f"\033[34mOpenSource\033[0m   : {metadata['isOpenSource']}"
+        content += f"\033[34mDesigners\033[0m    : {', '.join(metadata['designers'])}"
 
     return content
 
