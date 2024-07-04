@@ -4,22 +4,30 @@
 
 **Note:** If you encounter some errors, clean cache files described at the end of the page.
 
+- [Google Fonts API](#google-fonts-api)
 - [Installation](#installation)
+  - [Using pip](#using-pip)
+  - [Using pipx](#using-pipx)
   - [Requirements](#requirements)
     - [Runtime Dependencies](#runtime-dependencies)
     - [Development Dependencies](#development-dependencies)
 - [Usages](#usages)
-  - [Install](#install)
-  - [Pack as webfont](#pack-as-webfont)
   - [Search](#search)
-  - [Veiw information](#veiw-information)
+  - [Install](#install)
   - [Remove](#remove)
-  - [List installed font families](#list-installed-font-families)
+  - [Info](#info)
+  - [List](#list)
+  - [Update](#update)
+  - [webfont](#webfont)
   - [Preview](#preview)
-  - [Refresh](#refresh)
   - [For mor information](#for-mor-information)
 - [Related files](#related-files)
 
+## Google Fonts API
+
+By default, **gfont** doesn't need google font API key, instead it uses generated data/webfonts.json. This generated file won't be refreshed very often and contain older fonts. If you want more up-to-date fonts, add '**GOOGLE_FONTS_API_KEY**' environment variable inside ~/.bashrc or ~/.profile.
+
+See, [Google Fonts Developer API](https://developers.google.com/fonts/docs/developer_api) to generate your API key.
 
 ## Installation
 
@@ -32,42 +40,30 @@ pip install "git+https://github.com/nureon22/gfont.git"
 ```
 
 ### Using pipx
+
 ```sh
 pipx install "git+https://github.com/nureon22/gfont.git"
 ```
 
 ### Requirements
 
-* python 3.7 or newer
-* python-venv
-* git
+- python 3.7 or newer
+- python-venv
+- git
 
 #### Runtime Dependencies
 
-* requests
-* imagemagick (optional) - Require to preview the font
+- requests
+- imagemagick (optional) - Require to preview the font
 
 #### Development Dependencies
 
-* poetry (development)
+- poetry (development)
 
 ## Usages
 
 All commands support case-insensitive family names\
 You can also use underscore (\_) instead of space character
-
-### Install
-
-```sh
-gfont install "Noto Sans"
-```
-
-### Pack as webfont
-Pack a font family to use in websites as self-hosted fonts
-
-```sh
-gfont webfont "Noto Sans" --dir <dir>
-```
 
 ### Search
 
@@ -75,10 +71,10 @@ gfont webfont "Noto Sans" --dir <dir>
 gfont search "Noto Sans"
 ```
 
-### Veiw information
+### Install
 
 ```sh
-gfont info "Noto Sans"
+gfont install "Noto Sans"
 ```
 
 ### Remove
@@ -87,22 +83,49 @@ gfont info "Noto Sans"
 gfont remove "Noto Sans"
 ```
 
-### List installed font families
+### Info
+
+View overview information of the family
+
+```sh
+gfont info "Noto Sans"
+```
+
+### List
+
+List installed families
 
 ```sh
 gfont list
 ```
 
+### Update
+
+Update installed families
+
+```sh
+gfont update
+```
+
+### webfont
+
+Pack a font family to use in websites as self-hosted fonts
+
+```sh
+gfont webfont "Noto Sans" --dir <dir>
+```
+
 ### Preview
 
-Please install imagemagick first
+Install imagemagick first
+
 ```sh
 gfont preview "Noto Sans"
 ```
 
 ### For mor information
-`gfont <command> --help`
 
+`gfont <command> --help`
 
 ## Related files and directories
 
@@ -110,7 +133,6 @@ Directory for cached metadata of families
 
 Linux: `~/.cache/gfont`\
 Mac: `~/Library/Caches/gfont`
-
 
 Directory for installed fonts
 
