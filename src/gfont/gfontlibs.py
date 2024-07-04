@@ -107,14 +107,16 @@ def get_webfonts_css(
 def get_installed_families() -> List[str]:
     """Get installed font families"""
 
-    families = []
+    all_families = list(get_families().keys())
+    installed_families = []
 
     for dir in os.listdir(FONTS_DIR) if os.path.isdir(FONTS_DIR) else []:
-        if not dir.startswith("."):
-            families.append(dir.replace("_", " "))
+        family = dir.replace("_", " ")
+        if family in all_families:
+            installed_families.append(family)
 
-    families.sort()
-    return families
+    installed_families.sort()
+    return installed_families
 
 
 def get_license_content(family: str) -> str:
