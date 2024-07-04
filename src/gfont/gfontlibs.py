@@ -32,11 +32,32 @@ def get_families() -> Dict[str, Dict]:
     else:
         refresh = True
 
+    API_KEY = os.getenv("GOOGLE_FONTS_API_KEY")
+
+    if API_KEY:
+        url = "https://www.googleapis.com/webfonts/v1/webfonts?key=" + API_KEY
+    else:
+        url = "https://raw.githubusercontent.com/nureon22/gfont/main/data/webfonts.json"
+
     if refresh:
-        res = request("GET", "https://raw.githubusercontent.com/nureon22/gfont/main/src/gfont/data/families.json", timeout=REQUEST_TIMEOUT)
+        res = request("GET", url, timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
-        __families = res.json()
+        for item in res.json()["items"]:
+            item["variants"] = utils.resolve_variants(item["variants"], True)
+
+            if item["family"].startswith("Material"):
+                item["designers"] = ["Google"]
+                item["isOpenSource"] = True
+
+            __families[item["family"]] = item
+
+        res = request("GET", "https://fonts.google.com/metadata/fonts", timeout=REQUEST_TIMEOUT)
+        res.raise_for_status()
+
+        for item in res.json()["familyMetadataList"]:
+            __families[item["family"]]["designers"] = item["designers"]
+            __families[item["family"]]["isOpenSource"] = item["isOpenSource"]
 
         os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
         utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
@@ -247,7 +268,7 @@ def download_family(family: str, nocache: bool = False):
 
     fonts = [
         {
-            "filename": f"{family.replace(' ', '_')}-{utils.resolve_variant(x)}{os.path.splitext(files[x])[1]}",
+            "filename": f"{family.replace(' ', '_')}-{utils.resolve_variant(x, False)}{os.path.splitext(files[x])[1]}",
             "url": files[x]
         }
         for x in files

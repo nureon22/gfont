@@ -114,7 +114,7 @@ def thread_pool_loop(func, items, *args):
         return [future.result() for future in as_completed(futures)]
 
 
-def resolve_variant(variant: str, short: bool = False):
+def resolve_variant(variant: str, short: bool):
     _variant = variant
 
     if variant == "regular":
@@ -129,3 +129,7 @@ def resolve_variant(variant: str, short: bool = False):
         sys.exit(1)
 
     return variant if short else FONT_VARIANT_STANDARD_NAMES[variant]
+
+
+def resolve_variants(variants: List[str], short: bool):
+    return [resolve_variant(x, short) for x in variants]
