@@ -120,7 +120,7 @@ def get_webfonts_css(
     res = request("GET", url, headers=headers, timeout=REQUEST_TIMEOUT)
     res.raise_for_status()
 
-    return res.text
+    return f"/* original-url: {url} */\n\n{res.text}"
 
 
 def get_installed_families() -> List[str]:
