@@ -320,8 +320,9 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
     font = re.findall(r"https://fonts.gstatic.com/[^\)]+", webfonts_css)[0]
 
     if shutil.which("convert") and shutil.which("display"):
-        fontfile = os.path.join(CACHE_DIR, "preview.ttf")
-        imagefile = os.path.join(CACHE_DIR, "preview.png")
+        now = time.time()
+        fontfile = os.path.join(CACHE_DIR, str(now) + ".ttf")
+        imagefile = os.path.join(CACHE_DIR, str(now) + ".png")
 
         utils.download_file(font, fontfile)
 
