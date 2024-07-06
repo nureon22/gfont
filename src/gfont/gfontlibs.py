@@ -104,8 +104,8 @@ def get_webfonts_css(
     family: str,
     woff2: bool,
     styles: str = "",
-    display: str | None = None,
-    text: str | None = None,
+    display: Optional[str] = None,
+    text: Optional[str] = None,
 ) -> str:
     """Return CSS content of a font family"""
 
@@ -368,7 +368,13 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
         utils.log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
 
-def pack_webfonts(family: str, dir: str, styles: str = "", **parameters: str | None):
+def pack_webfonts(
+    family: str,
+    dir: str,
+    styles: str = "",
+    display: Optional[str] = None,
+    text: Optional[str] = None,
+):
     """Pack a font family to use in websites as self-hosted fonts"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -376,7 +382,7 @@ def pack_webfonts(family: str, dir: str, styles: str = "", **parameters: str | N
 
     family = resolve_family(family)
 
-    webfonts_css = get_webfonts_css(family, True, styles, **parameters)
+    webfonts_css = get_webfonts_css(family, True, styles, display=display, text=text)
     subdir = os.path.join(dir, family.replace(" ", "_"))
 
     fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
