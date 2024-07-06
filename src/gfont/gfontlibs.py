@@ -4,6 +4,7 @@ import re
 import shutil
 import sys
 import time
+import urllib.parse
 from datetime import datetime
 from typing import (
     Dict,
@@ -75,7 +76,9 @@ def get_metadata(family: str):
     metadata = __families[family]
 
     if "designers" not in metadata or "license" not in metadata:
-        res = request("GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT)
+        res = request(
+            "GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT
+        )
         res.raise_for_status()
         data = json.loads(res.text.replace(")]}'", "", 1))
         metadata["designers"] = [x["name"] for x in data["designers"]]
@@ -86,34 +89,30 @@ def get_metadata(family: str):
 
 
 def get_webfonts_css(
-    family: str, woff2: bool = False, variants: Optional[List[str]] = None, text: Optional[str] = None
+    family: str,
+    woff2: bool,
+    styles: str = "",
+    display: str | None = None,
+    text: str | None = None,
 ) -> str:
     """Return CSS content of a font family"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(woff2, bool, "Second argument 'woff2' must be 'bool'")
+    utils.isinstance_check(styles, str, "Third argument 'styles' must be 'str'")
 
-    if variants is not None:
-        utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
+    api_version = "css2" if "@" in styles else "css"
 
-    family = resolve_family(family)
+    url = f"https://fonts.googleapis.com/{api_version}?family=" + family.replace(" ", "+")
 
-    url = f"https://fonts.googleapis.com/css2?family={family.replace(' ', '+')}"
+    if styles:
+        url = url + ":" + styles
 
-    if variants:
-        all_variants = get_metadata(family)["variants"]  # type: ignore
-
-        for variant in variants:
-            if variant not in all_variants:
-                utils.log("error", f"Font variant '{variant}' is not available for '{family}'")
-                sys.exit(1)
-
-        finalvariants = [f"1,{x[:-1]}" if x.endswith("i") else f"0,{x}" for x in variants]
-        finalvariants.sort()
-        url = url + ":ital,wght@" + ";".join(finalvariants)
+    if display:
+        url = url + f"&display={urllib.parse.quote(display)}"
 
     if text:
-        url = url + "&text=" + text
+        url = url + f"&text={urllib.parse.quote(text)}"
 
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
@@ -325,14 +324,16 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
         res.raise_for_status()
         preview_text = str(json.loads(res.text.replace(")]}'", ""))["sampleText"]["specimen48"])
     else:
-        utils.isinstance_check(preview_text, str, "Second argument 'preview_text' must be 'None' or 'str'")
+        utils.isinstance_check(
+            preview_text, str, "Second argument 'preview_text' must be 'None' or 'str'"
+        )
 
     utils.isinstance_check(font_size, int, "Third argument 'font_size' must be 'int'")
 
     preview_text = utils.split_long_text(preview_text, 32)
 
     webfonts_css = get_webfonts_css(family, woff2=False, text=preview_text)
-    font = re.findall(r"https://fonts.gstatic.com/[^\)]+", webfonts_css)[0]
+    font = re.findall(r"url\(([^\)]+)\)", webfonts_css)[0]
 
     if shutil.which("convert") and shutil.which("display"):
         now = time.time()
@@ -352,25 +353,19 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
         utils.log("warning", "Cannot preview the font, because imagemagick isn't installed")
 
 
-def pack_webfonts(family: str, dir: str, variants: Optional[List[str]] = None):
+def pack_webfonts(family: str, dir: str, styles: str = "", **parameters: str | None):
     """Pack a font family to use in websites as self-hosted fonts"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
 
-    if variants is not None:
-        utils.isinstance_check(variants, List, "Third argument 'variants' must be 'List'")
-    else:
-        variants = get_metadata(family)["variants"]
-
     family = resolve_family(family)
 
-    webfonts_css = get_webfonts_css(family, woff2=True, variants=variants)
-
+    webfonts_css = get_webfonts_css(family, True, styles, **parameters)
     subdir = os.path.join(dir, family.replace(" ", "_"))
 
-    woff_fonts = list(set(re.findall(r"https://fonts.gstatic.com/.+\.woff2?", webfonts_css)))
-    fonts = [{"url": font, "filename": os.path.basename(font)} for font in woff_fonts]
+    fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
+    fonts = [{"url": font, "filename": os.path.basename(font)} for font in fonts]
 
     download_fonts(family, fonts, f"{subdir}/fonts", True)
 

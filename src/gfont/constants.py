@@ -6,14 +6,13 @@ system_platform = platform.system()
 if system_platform == "Linux":
     FONTS_DIR = os.path.expanduser("~/.local/share/fonts/gfont")
     CACHE_DIR = os.path.expanduser("~/.cache/gfont")
-    CACHE_FILE = os.path.join(CACHE_DIR, "families.json")
 elif system_platform == "Darwin":
     FONTS_DIR = os.path.expanduser("~/Library/Fonts/gfont")
     CACHE_DIR = os.path.expanduser("~/Library/Caches/gfont")
-    CACHE_FILE = os.path.join(CACHE_DIR, "families.json")
 else:
     raise Exception("You system is not supported yet")
 
+CACHE_FILE = os.path.join(CACHE_DIR, "families.json")
 
 REQUEST_TIMEOUT = 10
 MAX_WORKERS = 4

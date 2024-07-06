@@ -79,10 +79,14 @@ def webfont_command(args):
 
     for family in families:
         if ":" in family:
-            [family, variants] = family.split(":")
-            libs.pack_webfonts(libs.resolve_family(family), args.dir, variants.split(","))
+            [family, styles] = family.split(":")
+            libs.pack_webfonts(
+                libs.resolve_family(family), args.dir, styles, display=args.display, text=args.text
+            )
         else:
-            libs.pack_webfonts(libs.resolve_family(family), args.dir)
+            libs.pack_webfonts(
+                libs.resolve_family(family), args.dir, "", display=args.display, text=args.text
+            )
 
 
 helps = {
@@ -107,8 +111,10 @@ helps = {
     "preview__family": "name of the font family (case-insensitive)",
     "webfont__help": "pack a font family to use in websites",
     "webfont__dir": "directory to place the packed webfonts",
+    "webfont__display": "font-display property of the font family",
+    "webfont__text": "Reduce bandwidth by specific text",
     "webfont__no_cache": "download the font again, even it is already downloaded",
-    "webfont__family": "name of the font family (case-insensitive). To pack only specific font variants use <family>:<variant> (e.g. Roboto:400, Roboto:700,700i)",
+    "webfont__family": "name of the font family (case-insensitive) plus fonts specs (optional). Support both google fonts api v1 and v2. (e.g. 'open-sans:400,700', 'open-sans:ital,wght@0,700;1,700', 'open-sans:ital,wght@0,300..700')",
 }
 
 
@@ -164,6 +170,8 @@ def main():
     webfont_parser = subparsers.add_parser("webfont", help=helps["webfont__help"])
     webfont_parser.add_argument("--dir", required=True, help=helps["webfont__dir"])
     webfont_parser.add_argument("--no-cache", action="store_true", help=helps["webfont__no_cache"])
+    webfont_parser.add_argument("--display", help=helps["webfont__display"])
+    webfont_parser.add_argument("--text", help=helps["webfont__text"])
     webfont_parser.add_argument("family", nargs="+", help=helps["webfont__family"])
     webfont_parser.set_defaults(func=webfont_command)
 
