@@ -21,7 +21,7 @@
   - [webfont](#webfont)
   - [Preview](#preview)
   - [For mor information](#for-mor-information)
-- [Related files](#related-files)
+- [Related directories](#related-directories)
 
 ## Google Fonts API
 
@@ -68,19 +68,19 @@ You can also use underscore (\_) instead of space character
 ### Search
 
 ```sh
-gfont search "Noto Sans"
+gfont search noto sans
 ```
 
 ### Install
 
 ```sh
-gfont install "Noto Sans"
+gfont install noto-sans
 ```
 
 ### Remove
 
 ```sh
-gfont remove "Noto Sans"
+gfont remove noto-sans
 ```
 
 ### Info
@@ -88,7 +88,7 @@ gfont remove "Noto Sans"
 View overview information of the family
 
 ```sh
-gfont info "Noto Sans"
+gfont info noto-sans
 ```
 
 ### List
@@ -107,12 +107,21 @@ Update installed families
 gfont update
 ```
 
-### webfont
+### Webfont
 
-Pack a font family to use in websites as self-hosted fonts
+Pack a font family to use in websites as self-hosted fonts.\
+Don't forget to use single or double quotes for safety.
 
 ```sh
-gfont webfont "Noto Sans" --dir <dir>
+gfont webfont "noto-sans" --dir <dir>
+```
+
+```sh
+gfont webfont "noto-sans:ital,wght@0,400;0,700" --dir <dir>
+```
+
+```sh
+gfont webfont "open-sans:ital,wght@0,300..700" --dir <dir>
 ```
 
 ### Preview
@@ -120,14 +129,14 @@ gfont webfont "Noto Sans" --dir <dir>
 Install imagemagick first
 
 ```sh
-gfont preview "Noto Sans"
+gfont preview noto-sans
 ```
 
 ### For mor information
 
 `gfont <command> --help`
 
-## Related files and directories
+## Related directories
 
 Directory for cached metadata of families
 
