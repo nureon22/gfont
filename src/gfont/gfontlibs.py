@@ -54,11 +54,6 @@ def get_families(refresh: bool = False) -> List[str]:
 
         for item in res.json()["items"]:
             item["variants"] = utils.resolve_variants(item["variants"], True)
-
-            if item["family"].startswith("Material "):
-                item["designers"] = ["Google"]
-                item["license"] = "apache2"
-
             __families[item["family"]] = item
 
         utils.write_file(CACHE_FILE, json.dumps(__families))
@@ -75,14 +70,31 @@ def get_metadata(family: str):
     family = resolve_family(family)
     metadata = __families[family]
 
-    if "designers" not in metadata or "license" not in metadata:
-        res = request(
-            "GET", f"https://fonts.google.com/metadata/fonts/{family}", timeout=REQUEST_TIMEOUT
-        )
-        res.raise_for_status()
-        data = json.loads(res.text.replace(")]}'", "", 1))
-        metadata["designers"] = [x["name"] for x in data["designers"]]
-        metadata["license"] = data["license"]
+    if "designers" not in metadata or "license" not in metadata or "axes" not in metadata:
+        if family.startswith("Material Icons"):
+            metadata["designers"] = ["Google"]
+            metadata["license"] = "apache2"
+            metadata["axes"] = []
+
+        elif family.startswith("Material Symbols"):
+            metadata["designers"] = ["Google"]
+            metadata["license"] = "apache2"
+            metadata["axes"] = [
+                {"tag": "opsz", "min": 20, "max": 48},
+                {"tag": "wght", "min": 100, "max": 700},
+                {"tag": "FILL", "min": 0, "max": 1},
+                {"tag": "GRAD", "min": -50, "max": 200},
+            ]
+
+        else:
+            url = f"https://fonts.google.com/metadata/fonts/{family}"
+            res = request("GET", url, timeout=REQUEST_TIMEOUT)
+            res.raise_for_status()
+            data = json.loads(res.text.replace(")]}'", "", 1))
+            metadata["designers"] = [x["name"] for x in data["designers"]]
+            metadata["license"] = data["license"]
+            metadata["axes"] = data["axes"]
+
         utils.write_file(CACHE_FILE, json.dumps(__families))
 
     return metadata
@@ -153,6 +165,8 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
     if isRaw:
         content = json.dumps(metadata, indent=4)
     else:
+        axes = [f"@{x['tag']}={x['min']}>{x['max']}" for x in metadata["axes"]]
+
         content = ""
         content += f"\033[01;34m{metadata['family']}\033[0m\n"
         content += "------------\n"
@@ -160,6 +174,7 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
         content += f"\033[34mCategory\033[0m  : {metadata['category']}\n"
         content += f"\033[34mSubsets\033[0m   : {', '.join(metadata['subsets'])}\n"
         content += f"\033[34mVariants\033[0m  : {', '.join(metadata['variants'])}\n"
+        content += f"\033[34mAxes\033[0m      : {', '.join(axes) if axes else 'None'}\n"
         content += f"\033[34mDesigners\033[0m : {', '.join(metadata['designers'])}\n"
         content += f"\033[34mLicense\033[0m   : {LICENSES[metadata['license']][0]}"
 
