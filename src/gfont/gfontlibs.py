@@ -20,25 +20,24 @@ from .constants import (
     CACHE_FILE,
     FONTS_DIR,
     LICENSES,
-    METADATA_CACHE_AGE,
     REQUEST_TIMEOUT,
 )
 
 __families: Dict[str, Dict] = {}
 
 
-def get_families() -> List[str]:
+def get_families(refresh: bool = False) -> List[str]:
     """Get a list of all families"""
 
     global __families
 
+    if refresh:
+        __families = {}
+    elif not os.path.isfile(CACHE_FILE):
+        refresh = True
+
     if __families:
         return list(__families.keys())
-
-    if os.path.isfile(CACHE_FILE):
-        refresh = (time.time() - os.path.getmtime(CACHE_FILE)) > METADATA_CACHE_AGE
-    else:
-        refresh = True
 
     API_KEY = os.getenv("GOOGLE_FONTS_API_KEY")
 
@@ -48,6 +47,7 @@ def get_families() -> List[str]:
         url = "https://raw.githubusercontent.com/nureon22/gfont/main/data/webfonts.json"
 
     if refresh:
+        print("Refreshing families metadata")
         res = request("GET", url, timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
@@ -208,7 +208,7 @@ def resolve_family(family: str, exact: bool = False) -> str:
     utils.isinstance_check(exact, bool, "Second argument 'exact' must be 'bool'")
 
     _family = family
-    family = re.sub(r'[-_]', ' ', family)
+    family = re.sub(r"[-_]", " ", family)
     families = get_families()
 
     if family in families:
@@ -242,9 +242,9 @@ def download_fonts(family: str, fonts: List[Dict], dir: str, nocache: bool = Fal
         print(f"Downloading '{family}' ({current}/{total})", end="\033[K\r")
 
         if os.path.isfile(filepath) and not nocache:
-            return time.sleep(0.05)
+            return
 
-        res = request("GET", font["url"], timeout=10)
+        res = request("GET", font["url"], timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
         utils.write_bytes_file(filepath, res.content)
 
@@ -264,7 +264,7 @@ def install_family(family: str, nocache: bool = False):
     fonts = [
         {
             "filename": f"{family.replace(' ', '_')}-{utils.resolve_variant(variant, False)}{os.path.splitext(url)[1]}",
-            "url": url
+            "url": url,
         }
         for [variant, url] in metadata["files"].items()
     ]
@@ -295,6 +295,21 @@ def remove_family(family: str):
         print("Removing '{}' finished".format(family))
 
 
+def update_families():
+    # Force to refresh metadata cache file
+    get_families(True)
+
+    for family in get_installed_families():
+        family = resolve_family(family)
+
+        print(f"Updating '{family}'", end="\033[K\r")
+        lastModified = datetime.fromisoformat(get_metadata(family)["lastModified"])
+        if lastModified.timestamp() > time.time():
+            install_family(family, True)
+        else:
+            print(f"No updates '{family}'")
+
+
 def preview_family(family: str, preview_text: Optional[str] = None, font_size: int = 48):
     """
     Preview the given font using imagemagick
@@ -305,10 +320,10 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
     family = resolve_family(family, True)
 
     if preview_text is None:
-        res = request("GET", f"https://fonts.google.com/sampletext?family={family.replace(' ', '+')}")
+        url = f"https://fonts.google.com/sampletext?family={family.replace(' ', '+')}"
+        res = request("GET", url, timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
-
-        preview_text = str(json.loads(re.sub(r"^\)\]\}'", "", res.text))["sampleText"]["specimen48"])
+        preview_text = str(json.loads(res.text.replace(")]}'", ""))["sampleText"]["specimen48"])
     else:
         utils.isinstance_check(preview_text, str, "Second argument 'preview_text' must be 'None' or 'str'")
 

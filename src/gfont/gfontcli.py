@@ -67,8 +67,7 @@ def update_command(args):
         print(f"  \033[34m{family}\033[0m")
 
     if IS_ASSUME_YES or utils.ask_yes_no("Do you want to continue?"):
-        for family in families:
-            libs.install_family(family, IS_NO_CACHE)
+        libs.update_families()
 
 
 def preview_command(args):

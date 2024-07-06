@@ -93,7 +93,7 @@ def download_file(url: str, filepath: str, cache_age: int = 0):
 
     if os.path.isfile(filepath):
         if cache_age > time.time() - os.path.getmtime(filepath):
-            return time.sleep(0.1)
+            return
 
     res = request("GET", url, timeout=10)
     res.raise_for_status()
