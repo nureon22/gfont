@@ -25,20 +25,23 @@ from .constants import (
 )
 
 __families: Dict[str, Dict] = {}
+__families_list: List[str] = []
 
 
 def get_families(refresh: bool = False) -> List[str]:
     """Get a list of all families"""
 
     global __families
+    global __families_list
 
     if refresh:
         __families = {}
+        __families_list = []
     elif not os.path.isfile(CACHE_FILE):
         refresh = True
 
-    if __families:
-        return list(__families.keys())
+    if __families_list:
+        return __families_list
 
     API_KEY = os.getenv("GOOGLE_FONTS_API_KEY")
 
@@ -54,21 +57,28 @@ def get_families(refresh: bool = False) -> List[str]:
 
         for item in res.json()["items"]:
             item["variants"] = utils.resolve_variants(item["variants"], True)
-            __families[item["family"]] = item
+            __families[utils.snake_case(item["family"])] = item
 
-        utils.write_file(CACHE_FILE, json.dumps(__families))
+        utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
     else:
         __families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
 
     __families = dict(sorted(__families.items()))
-    return list(__families.keys())
+    __families_list = [__families[x]["family"] for x in __families]
+
+    return __families_list
 
 
 def get_metadata(family: str):
     """Get metadata of the family"""
 
     family = resolve_family(family)
-    metadata = __families[family]
+    family_snake = utils.snake_case(family)
+
+    if family_snake in __families:
+        metadata = __families[family_snake]
+    else:
+        metadata = __families[family]
 
     if "designers" not in metadata or "license" not in metadata or "axes" not in metadata:
         if family.startswith("Material Icons"):
@@ -95,7 +105,7 @@ def get_metadata(family: str):
             metadata["license"] = data["license"]
             metadata["axes"] = data["axes"]
 
-        utils.write_file(CACHE_FILE, json.dumps(__families))
+        utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
 
     return metadata
 

@@ -126,3 +126,11 @@ def resolve_variant(variant: str, short: bool):
 
 def resolve_variants(variants: List[str], short: bool):
     return [resolve_variant(x, short) for x in variants]
+
+
+def kebab_case(text: str):
+    return text.lower().replace(" ", "-")
+
+
+def snake_case(text: str):
+    return text.lower().replace(" ", "_")
