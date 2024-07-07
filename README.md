@@ -47,7 +47,7 @@ pipx install "git+https://github.com/nureon22/gfont.git"
 
 ### Requirements
 
-- python 3.7 or newer
+- python 3.8 or newer
 - python-venv
 - git
 
@@ -58,7 +58,7 @@ pipx install "git+https://github.com/nureon22/gfont.git"
 
 #### Development Dependencies
 
-- poetry (development)
+- hatch (development)
 
 ## Usages
 

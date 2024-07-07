@@ -1,10 +1,11 @@
+# Contribution Guideline
+
 Thanks for interesting my project and taking your time to contribute! 🥰
 
 - [Bug Report or Feature Request](#bug-report-or-feature-request)
 - [Submitting Changes](#submitting-changes)
-    - [Setup Development](#setup-development-environment)
+  - [Setup Development](#setup-development-environment)
 - [Pull Requests](#pull-requests)
-
 
 ## Bug Report or Feature Request
 
@@ -20,12 +21,9 @@ If you find a bug or want a feature, please open an issue on GitHub. Include as 
 
 ### Setup Development Environment
 
-For development, I strongly recommend using python virtual environment.
-
 ```sh
-sh devscripts/setup.sh
-
-source bin/activate
+hatch -e dev env create
+hatch -e dev shell
 ```
 
 ## Pull Requests
