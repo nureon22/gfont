@@ -1,48 +1,57 @@
-[tool.poetry.scripts]
-gfont = "gfont.gfontcli:main"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "gfont"
-version = "0.11.1"
-description = "Browse and install fonts from fonts.google.com"
+dynamic = ["version"]
+description = 'Browse and install fonts from fonts.google.com'
 readme = "README.md"
-license = "MIT"
-authors = [
-    "Phyo Wai Lin <phyowailin2004@proton.me>"
-]
-keywords = ["font", "ttf", "woff2", "woff2", "webfonts", "terminal"]
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+keywords = ["font", "ttf", "woff2", "terminal"]
+authors = [{ name = "Phyo Wai Lin", email = "phyowailin2004@proton.me" }]
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
-    "Operating System :: POSIX :: Linux",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: System :: Console Fonts",
     "Topic :: Text Processing :: Fonts",
-    "License :: OSI Approved :: MIT License",
 ]
+dependencies = ["requests"]
 
-[tool.poetry.dependencies]
-python = "^3.7"
-requests = "*"
+[project.urls]
+Documentation = "https://github.com/nureon22/gfont#readme"
+Issues = "https://github.com/nureon22/gfont/issues"
+Source = "https://github.com/nureon22/gfont"
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "*"
-isort = "*"
+[project.scripts]
+gfont = "gfont.gfontcli:main"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.hatch.version]
+path = "src/gfont/constants.py"
 
-[tool.isort]
-multi_line_output = 3
-combine_as_imports = true
-include_trailing_comma = true
-force_grid_wrap = 3
-ensure_newline_before_comments = true
+[tool.hatch.envs.dev]
+dependencies = ["isort", "pre-commit"]
+
+[tool.hatch.envs.dev.scripts]
+setups = ["pre-commit install"]
+
+[tool.coverage.run]
+source_pkgs = ["gfont"]
+branch = true
+parallel = true
+omit = ["src/gfont/constants.py"]
+
+[tool.coverage.report]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]

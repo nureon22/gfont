@@ -6,11 +6,7 @@ import sys
 import time
 import urllib.parse
 from datetime import datetime
-from typing import (
-    Dict,
-    List,
-    Optional,
-)
+from typing import Dict, List, Optional
 
 from requests import request
 
@@ -194,7 +190,9 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
 def search_families(keywords: List[str], exact: bool = False) -> List[str]:
     """Search font families contain given keywords.
 
-    :param exact - if True, given keywords will be directly compare to name of the font family. But still case-insensitive.
+    :param exact -
+        if True, given keywords will be directly compare to name
+        of the font family. But still case-insensitive.
     :return - Return a list contains font family names
     """
 
@@ -367,9 +365,8 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
 
         utils.download_file(font, fontfile)
 
-        os.system(
-            f'convert -background "#101010" -fill "#ffffff" -font "{fontfile}" -pointsize {font_size} label:"{preview_text}" {imagefile}'
-        )
+        cmd = 'convert -background "#101010" -fill "#ffffff" -font "{}" -pointsize {} label:"{}" {}'
+        os.system(cmd.format(fontfile, font_size, preview_text, imagefile))
         os.system(f"display {imagefile}")
 
         os.remove(fontfile)
