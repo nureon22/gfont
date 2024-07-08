@@ -403,7 +403,7 @@ def pack_webfonts(
     download_fonts(family, fonts, f"{subdir}/fonts", True)
 
     for font in fonts:
-        webfonts_css = webfonts_css.replace(font["url"], font["filename"])
+        webfonts_css = webfonts_css.replace(font["url"], "fonts/" + font["filename"])
     utils.write_file(f"{subdir}/{family_kebab}.css", webfonts_css)
 
     print(f"Packing '{family}' webfonts finished.")
