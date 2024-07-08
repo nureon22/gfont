@@ -398,7 +398,8 @@ def pack_webfonts(
     fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
     fonts = [{"url": font, "filename": f"{utils.unique_name()}.woff2"} for font in fonts]
 
-    utils.empty_directory(f"{subdir}/fonts")
+    if clean:
+        utils.empty_directory(f"{subdir}/fonts")
     download_fonts(family, fonts, f"{subdir}/fonts", True)
 
     for font in fonts:
