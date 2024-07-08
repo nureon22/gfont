@@ -388,16 +388,18 @@ def pack_webfonts(
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
 
     family = resolve_family(family)
+    family_kebab = utils.kebab_case(family)
 
     webfonts_css = get_webfonts_css(family, True, styles, display=display, text=text)
-    subdir = os.path.join(dir, family.replace(" ", "_"))
+    subdir = os.path.join(dir, family_kebab)
 
     fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
-    fonts = [{"url": font, "filename": os.path.basename(font)} for font in fonts]
+    fonts = [{"url": font, "filename": f"{utils.unique_name()}.woff2"} for font in fonts]
 
     download_fonts(family, fonts, f"{subdir}/fonts", True)
 
-    webfonts_css = re.sub(r"https://fonts.gstatic.com/.+/", "fonts/", webfonts_css)
-    utils.write_file(f"{subdir}/{family.replace(' ', '_')}.css", webfonts_css)
+    for font in fonts:
+        webfonts_css = webfonts_css.replace(font["url"], font["filename"])
+    utils.write_file(f"{subdir}/{family_kebab}.css", webfonts_css)
 
     print(f"Packing '{family}' webfonts finished.")

@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -16,6 +17,8 @@ LOG_COLORS = {
     "CRITICAL": "\033[35m",  # Purple
     "RESET": "\033[0m",
 }
+
+generated_unique_name = []
 
 
 def isinstance_check(value, instance, message):
@@ -134,3 +137,14 @@ def kebab_case(text: str):
 
 def snake_case(text: str):
     return text.lower().replace(" ", "_")
+
+
+def unique_name():
+    chars = "abcdefghijklmnopqrstuvwxyz"
+    result = "".join([random.choice(chars) for _i in range(16)])
+
+    if result in generated_unique_name:
+        return unique_name()
+    else:
+        generated_unique_name.append(result)
+        return result
