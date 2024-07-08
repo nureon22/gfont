@@ -378,6 +378,7 @@ def preview_family(family: str, preview_text: Optional[str] = None, font_size: i
 def pack_webfonts(
     family: str,
     dir: str,
+    clean: bool,
     styles: str = "",
     display: Optional[str] = None,
     text: Optional[str] = None,
@@ -386,6 +387,7 @@ def pack_webfonts(
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
+    utils.isinstance_check(clean, bool, "Third argument 'clean' must be 'bool'")
 
     family = resolve_family(family)
     family_kebab = utils.kebab_case(family)
@@ -396,6 +398,7 @@ def pack_webfonts(
     fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
     fonts = [{"url": font, "filename": f"{utils.unique_name()}.woff2"} for font in fonts]
 
+    utils.empty_directory(f"{subdir}/fonts")
     download_fonts(family, fonts, f"{subdir}/fonts", True)
 
     for font in fonts:

@@ -148,3 +148,13 @@ def unique_name():
     else:
         generated_unique_name.append(result)
         return result
+
+
+def empty_directory(dir: str):
+    if not os.path.isdir(dir):
+        return
+
+    for filename in os.listdir(dir):
+        filepath = os.path.join(dir, filename)
+        if os.path.isfile(filepath):
+            os.remove(filepath)
