@@ -9,13 +9,7 @@ IS_NO_CACHE = False
 
 
 def search_command(args):
-    installed_families = libs.get_installed_families()
-
-    for family in libs.search_families(args.keywords):
-        if family in installed_families:
-            print("\033[34m{}\033[0m [installed]".format(family))
-        else:
-            print("\033[34m{}\033[0m".format(family))
+    print("\n".join(libs.search_families(args.keywords)))
 
 
 def info_command(args):
@@ -23,21 +17,15 @@ def info_command(args):
 
 
 def list_command(args):
-    installed_families = libs.get_installed_families()
-    installed_families.sort()
-
     if args.all:
-        for family in libs.get_families():
-            if family in installed_families:
-                print("\033[34m{}\033[0m [installed]".format(family))
-            else:
-                print("\033[34m{}\033[0m".format(family))
+        print("\n".join(libs.get_families()))
     else:
+        installed_families = libs.get_installed_families()
+
         if len(installed_families) == 0:
             print("No installed font families")
         else:
-            for family in installed_families:
-                print("\033[34m{}\033[0m".format(family))
+            print("\n".join(installed_families))
 
 
 def install_command(args):
