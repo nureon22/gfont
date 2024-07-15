@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "gfont"
 dynamic = ["version"]
-description = 'Browse and install fonts from fonts.google.com'
+description = 'Browse and install google fonts using terminal'
 readme = "README.md"
 requires-python = ">=3.8"
 license = { file = "LICENSE" }

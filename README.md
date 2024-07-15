@@ -1,4 +1,4 @@
-# Browse and install fonts from fonts.google.com
+# Browse and install google fonts using terminal
 
 ⚠️ **Warning:** this project is still in development and doesn't support the Windows yet
 
