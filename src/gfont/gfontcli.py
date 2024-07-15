@@ -70,7 +70,7 @@ def webfont_command(args):
             )
         else:
             libs.pack_webfonts(
-                libs.resolve_family(family), args.dir, bool(args.clean), "", display=args.display, text=args.text
+                libs.resolve_family(family), args.dir, bool(args.clean), display=args.display, text=args.text
             )
 
 

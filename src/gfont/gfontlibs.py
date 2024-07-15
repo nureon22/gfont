@@ -14,7 +14,6 @@ from requests import request
 from . import utils
 from .constants import (
     BROWSER_USER_AGENT,
-    CACHE_DIR,
     CACHE_FILE,
     FONTS_DIR,
     LICENSES,
@@ -48,7 +47,8 @@ def get_families(refresh: bool = False) -> List[str]:
         url = "https://raw.githubusercontent.com/nureon22/gfont/main/data/webfonts.json"
 
     if refresh:
-        print("Refreshing families metadata")
+        print("Refreshing families metadata", end="\033[K\r")
+
         res = request("GET", url, timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
@@ -57,11 +57,14 @@ def get_families(refresh: bool = False) -> List[str]:
             __families[utils.snake_case(item["family"])] = item
 
         utils.write_file(CACHE_FILE, json.dumps(__families, indent=4))
+
+        # Clear previous line
+        print("", end="\033[K\r")
     else:
         __families = json.loads(utils.read_file(CACHE_FILE))  # type: ignore
 
-    __families = dict(sorted(__families.items()))
     __families_list = [__families[x]["family"] for x in __families]
+    __families_list.sort()
 
     return __families_list
 
@@ -107,13 +110,7 @@ def get_metadata(family: str):
     return metadata
 
 
-def get_webfonts_css(
-    family: str,
-    woff2: bool,
-    styles: str = "",
-    display: Optional[str] = None,
-    text: Optional[str] = None,
-) -> str:
+def get_webfonts_css(family: str, woff2: bool, styles: str = "", **parameters: Optional[str]) -> str:
     """Return CSS content of a font family"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -127,11 +124,11 @@ def get_webfonts_css(
     if styles:
         url = url + ":" + styles
 
-    if display:
-        url = url + f"&display={urllib.parse.quote(display)}"
+    supported_parameters = ["display", "text"]
 
-    if text:
-        url = url + f"&text={urllib.parse.quote(text)}"
+    for [parameter, value] in parameters.items():
+        if parameter in supported_parameters and value:
+            url = url + f"&{parameter}={urllib.parse.quote(value)}"
 
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
@@ -283,14 +280,13 @@ def install_family(family: str, nocache: bool = False):
     metadata = get_metadata(family)
 
     subdir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
+    fonts = []
 
-    fonts = [
-        {
-            "filename": f"{family.replace(' ', '_')}-{utils.resolve_variant(variant, False)}{os.path.splitext(url)[1]}",
-            "url": url,
-        }
-        for [variant, url] in metadata["files"].items()
-    ]
+    for [variant, url] in metadata["files"].items():
+        filename = family.replace(" ", "_")
+        filename = filename + "-" + utils.resolve_variant(variant, False)  # Convert to standard font variant
+        filename = filename + os.path.splitext(url)[1]  # Add file extension
+        fonts.append({"filename": filename, "url": url})
 
     lastModified = datetime.fromisoformat(metadata["lastModified"])
     download_fonts(family, fonts, subdir, nocache or lastModified.timestamp() > time.time())
@@ -333,24 +329,18 @@ def update_families():
             print(f"No updates '{family}'")
 
 
-def pack_webfonts(
-    family: str,
-    dir: str,
-    clean: bool,
-    styles: str = "",
-    display: Optional[str] = None,
-    text: Optional[str] = None,
-):
+def pack_webfonts(family: str, dir: str, clean: bool, styles: str = "", **parameters: Optional[str]):
     """Pack a font family to use in websites as self-hosted fonts"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(dir, str, "Second argument 'dir' must be 'str'")
     utils.isinstance_check(clean, bool, "Third argument 'clean' must be 'bool'")
+    utils.isinstance_check(styles, str, "Fourth argument 'styles' must be 'str'")
 
     family = resolve_family(family)
     family_kebab = utils.kebab_case(family)
 
-    webfonts_css = get_webfonts_css(family, True, styles, display=display, text=text)
+    webfonts_css = get_webfonts_css(family, True, styles, **parameters)
     subdir = os.path.join(dir, family_kebab)
 
     fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
