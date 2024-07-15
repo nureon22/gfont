@@ -69,7 +69,7 @@ def get_families(refresh: bool = False) -> List[str]:
     return __families_list
 
 
-def get_metadata(family: str):
+def get_metadata(family: str, need_extra: bool):
     """Get metadata of the family"""
 
     family = resolve_family(family)
@@ -79,6 +79,9 @@ def get_metadata(family: str):
         metadata = __families[family_snake]
     else:
         metadata = __families[family]
+
+    if not need_extra:
+        return metadata
 
     if "designers" not in metadata or "license" not in metadata or "axes" not in metadata:
         if family.startswith("Material Icons"):
@@ -162,7 +165,7 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
     utils.isinstance_check(isRaw, bool, "Second argument 'isRaw' must be 'bool'")
 
-    metadata = get_metadata(family)
+    metadata = get_metadata(family, True)
 
     content = ""
 
@@ -277,7 +280,7 @@ def install_family(family: str, nocache: bool = False):
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
 
     family = resolve_family(family)
-    metadata = get_metadata(family)
+    metadata = get_metadata(family, False)
 
     subdir = os.path.join(FONTS_DIR, family.replace(" ", "_"))
     fonts = []
@@ -324,7 +327,7 @@ def get_available_updates() -> List[str]:
 
     for family in get_installed_families():
         family = resolve_family(family)
-        lastModified = datetime.fromisoformat(get_metadata(family)["lastModified"])
+        lastModified = datetime.fromisoformat(get_metadata(family, False)["lastModified"])
 
         if lastModified.timestamp() > time.time():
             families.append(family)
