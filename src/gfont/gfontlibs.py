@@ -2,6 +2,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import time
 import urllib.parse
@@ -295,7 +296,7 @@ def install_family(family: str, nocache: bool = False):
     download_fonts(family, fonts, subdir, nocache or lastModified.timestamp() > time.time())
 
     if shutil.which("fc-cache"):
-        os.system("fc-cache")
+        subprocess.call("fc-cache")
 
     print(f"Installation '{family}' finished.")
 
@@ -312,7 +313,7 @@ def remove_family(family: str):
         shutil.rmtree(dir)
 
         if shutil.which("fc-cache"):
-            os.system("fc-cache")
+            subprocess.call("fc-cache")
 
         print("Removing '{}' finished".format(family))
 
