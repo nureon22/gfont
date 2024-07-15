@@ -332,49 +332,6 @@ def update_families():
             print(f"No updates '{family}'")
 
 
-def preview_family(family: str, preview_text: Optional[str] = None, font_size: int = 48):
-    """
-    Preview the given font using imagemagick
-    """
-
-    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
-
-    family = resolve_family(family, True)
-
-    if preview_text is None:
-        url = f"https://fonts.google.com/sampletext?family={family.replace(' ', '+')}"
-        res = request("GET", url, timeout=REQUEST_TIMEOUT)
-        res.raise_for_status()
-        preview_text = str(json.loads(res.text.replace(")]}'", ""))["sampleText"]["specimen48"])
-    else:
-        utils.isinstance_check(
-            preview_text, str, "Second argument 'preview_text' must be 'None' or 'str'"
-        )
-
-    utils.isinstance_check(font_size, int, "Third argument 'font_size' must be 'int'")
-
-    preview_text = utils.split_long_text(preview_text, 32)
-
-    webfonts_css = get_webfonts_css(family, woff2=False, text=preview_text)
-    font = re.findall(r"url\(([^\)]+)\)", webfonts_css)[0]
-
-    if shutil.which("convert") and shutil.which("display"):
-        now = time.time()
-        fontfile = os.path.join(CACHE_DIR, str(now) + ".ttf")
-        imagefile = os.path.join(CACHE_DIR, str(now) + ".png")
-
-        utils.download_file(font, fontfile)
-
-        cmd = 'convert -background "#101010" -fill "#ffffff" -font "{}" -pointsize {} label:"{}" {}'
-        os.system(cmd.format(fontfile, font_size, preview_text, imagefile))
-        os.system(f"display {imagefile}")
-
-        os.remove(fontfile)
-        os.remove(imagefile)
-    else:
-        utils.log("warning", "Cannot preview the font, because imagemagick isn't installed")
-
-
 def pack_webfonts(
     family: str,
     dir: str,

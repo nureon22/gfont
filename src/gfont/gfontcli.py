@@ -59,10 +59,6 @@ def update_command(args):
         libs.update_families()
 
 
-def preview_command(args):
-    libs.preview_family(args.family, args.text if args.text else None)
-
-
 def webfont_command(args):
     families = [family for family in args.family]
 
@@ -95,9 +91,6 @@ helps = {
     "remove__family": "name of the font family (case-insensitive)",
     "update__help": "update installed font families",
     "update__yes": "assume 'yes' as answer to all prompts and run non-interactively",
-    "preview__help": "preview the font families",
-    "preview__text": "write any preview text you want",
-    "preview__family": "name of the font family (case-insensitive)",
     "webfont__help": "pack a font family to use in websites",
     "webfont__dir": "directory to place the packed webfonts",
     "webfont__clean": "clean previous generated font files",
@@ -147,12 +140,6 @@ def main():
     update_parser = subparsers.add_parser("update", help=helps["update__help"])
     update_parser.add_argument("-y", "--yes", action="store_true", help=helps["update__yes"])
     update_parser.set_defaults(func=update_command)
-
-    # preview sub-command
-    preview_parser = subparsers.add_parser("preview", help=helps["preview__help"])
-    preview_parser.add_argument("--text", help=helps["preview__text"])
-    preview_parser.add_argument("family", help=helps["preview__family"])
-    preview_parser.set_defaults(func=preview_command)
 
     # webfont sub-command
     webfont_parser = subparsers.add_parser("webfont", help=helps["webfont__help"])

@@ -19,7 +19,6 @@
   - [List](#list)
   - [Update](#update)
   - [webfont](#webfont)
-  - [Preview](#preview)
   - [Tricks](#tricks)
   - [For mor information](#for-mor-information)
 - [Related directories](#related-directories)
@@ -55,7 +54,6 @@ pipx install "git+https://github.com/nureon22/gfont.git"
 #### Runtime Dependencies
 
 - requests
-- imagemagick (optional) - Require to preview the font
 
 #### Development Dependencies
 
@@ -129,15 +127,6 @@ gfont webfont "noto-sans:ital,wght@0,400;0,700" --dir <dir>
 
 ```sh
 gfont webfont "open-sans:ital,wght@0,300..700" --dir <dir>
-```
-
-### Preview
-
-Preview the family using imagemagick
-Install imagemagick first.
-
-```sh
-gfont preview noto-sans
 ```
 
 ### Tricks
