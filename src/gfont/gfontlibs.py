@@ -314,19 +314,22 @@ def remove_family(family: str):
         print("Removing '{}' finished".format(family))
 
 
-def update_families():
+def get_available_updates() -> List[str]:
+    """Get a list of families available to update"""
+
     # Force to refresh metadata cache file
     get_families(True)
 
+    families = []
+
     for family in get_installed_families():
         family = resolve_family(family)
-
-        print(f"Updating '{family}'", end="\033[K\r")
         lastModified = datetime.fromisoformat(get_metadata(family)["lastModified"])
+
         if lastModified.timestamp() > time.time():
-            install_family(family, True)
-        else:
-            print(f"No updates '{family}'")
+            families.append(family)
+
+    return families
 
 
 def pack_webfonts(family: str, dir: str, clean: bool, styles: str = "", **parameters: Optional[str]):

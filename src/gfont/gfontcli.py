@@ -49,14 +49,20 @@ def remove_command(args):
 
 
 def update_command(args):
-    families = libs.get_installed_families()
+    families = libs.get_available_updates()
+
+    if len(families) == 0:
+        print("Nothing to update")
+        return
 
     print("Updating:")
+
     for family in families:
         print(f"  \033[34m{family}\033[0m")
 
     if IS_ASSUME_YES or utils.ask_yes_no("Do you want to continue?"):
-        libs.update_families()
+        for family in families:
+            libs.install_family(family, True)
 
 
 def webfont_command(args):
