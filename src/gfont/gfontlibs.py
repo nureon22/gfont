@@ -231,7 +231,7 @@ def resolve_family(family: str, exact: bool = False) -> str:
     utils.isinstance_check(exact, bool, "Second argument 'exact' must be 'bool'")
 
     _family = family
-    family = re.sub(r"[-_]", " ", family)
+    family = re.sub(r"[-_\+]", " ", family)
     families = get_families()
 
     if family in families:

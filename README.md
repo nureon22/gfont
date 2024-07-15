@@ -61,8 +61,8 @@ pipx install "git+https://github.com/nureon22/gfont.git"
 
 ## Usages
 
-All commands support case-insensitive family names\
-You can also use underscore (\_) instead of space character
+All commands support case-insensitive family names.\
+You can also use underscore (\_) or dash (-) or plus (+) instead of space character in family name.
 
 ### Search
 
