@@ -24,6 +24,7 @@ If you find a bug or want a feature, please open an issue on GitHub. Include as 
 ```sh
 hatch -e dev env create
 hatch -e dev shell
+pre-commit install
 ```
 
 ## Pull Requests

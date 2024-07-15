@@ -20,6 +20,7 @@
   - [Update](#update)
   - [webfont](#webfont)
   - [Preview](#preview)
+  - [Tricks](#tricks)
   - [For mor information](#for-mor-information)
 - [Related directories](#related-directories)
 
@@ -67,17 +68,23 @@ You can also use underscore (\_) instead of space character
 
 ### Search
 
+Search available families
+
 ```sh
 gfont search noto sans
 ```
 
 ### Install
 
+Install one or more families
+
 ```sh
 gfont install noto-sans
 ```
 
 ### Remove
+
+Remove one or more families
 
 ```sh
 gfont remove noto-sans
@@ -101,7 +108,7 @@ gfont list
 
 ### Update
 
-Update installed families
+Update installed families to latest version
 
 ```sh
 gfont update
@@ -109,7 +116,7 @@ gfont update
 
 ### Webfont
 
-Pack a font family to use in websites as self-hosted fonts.\
+Pack woff2 fonts and it's css to be used as self-hosted fonts in websites.\
 Don't forget to use single or double quotes for safety.
 
 ```sh
@@ -126,10 +133,19 @@ gfont webfont "open-sans:ital,wght@0,300..700" --dir <dir>
 
 ### Preview
 
-Install imagemagick first
+Preview the family using imagemagick
+Install imagemagick first.
 
 ```sh
 gfont preview noto-sans
+```
+
+### Tricks
+
+Install search results
+
+```sh
+gfont install $(gfont search noto sans | sed 's/ /_/g')
 ```
 
 ### For mor information
