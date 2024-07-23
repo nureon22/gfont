@@ -353,11 +353,12 @@ def pack_webfonts(family: str, dir: str, clean: bool, styles: str = "", **parame
     fonts = [{"url": font, "filename": f"{utils.unique_name()}.woff2"} for font in fonts]
 
     if clean:
-        utils.empty_directory(f"{subdir}/fonts")
-    download_fonts(family, fonts, f"{subdir}/fonts", True)
+        utils.empty_directory(subdir)
+    download_fonts(family, fonts, subdir, True)
 
     for font in fonts:
-        webfonts_css = webfonts_css.replace(font["url"], "fonts/" + font["filename"])
-    utils.write_file(f"{subdir}/{family_kebab}.css", webfonts_css)
+        webfonts_css = webfonts_css.replace(font["url"], f"{family_kebab}/" + font["filename"])
+    utils.write_file(f"{dir}/{family_kebab}.css", webfonts_css)
 
     print(f"Packing '{family}' webfonts finished.")
+
