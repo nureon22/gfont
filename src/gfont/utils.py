@@ -39,7 +39,7 @@ def ask_yes_no(question: str, default: str = "yes") -> bool:
         return (input(f"{question} [y|N] ") or "N").upper().strip()[0] == "Y"
 
 
-def split_long_text(text: str, max_length: int):
+def split_long_text(text: str, max_length: int, separator: str = " ", line_breaker: str = "\n"):
     """
     Add line break at every {max_length} words
     """
@@ -47,13 +47,20 @@ def split_long_text(text: str, max_length: int):
     isinstance_check(text, str, "First argument 'text' must be 'str'")
     isinstance_check(max_length, int, "Second argument 'max_length' must be 'int'")
 
-    result = ""
+    result = [""]
 
-    for index in range(0, len(text), max_length):
-        end = index + max_length
-        result = result + text[index:end] + "\n"
+    for word in text.split(separator):
+        last_result = result[-1]
 
-    return result
+        if last_result != "":
+            result[-1] = last_result = last_result + separator
+
+        if len(last_result + word) > max_length:
+            result.append(line_breaker + word)
+        else:
+            result[-1] = last_result + word
+
+    return "".join(result)
 
 
 def read_file(filepath: str):

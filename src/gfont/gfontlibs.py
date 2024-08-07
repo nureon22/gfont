@@ -174,16 +174,19 @@ def get_printable_info(family: str, isRaw: bool = False) -> str:
     else:
         axes = [f"@{x['tag']}={x['min']}>{x['max']}" for x in metadata["axes"]]
 
+        max_length = os.get_terminal_size().columns
+        line_breaker = "\n" + " " * 12
+
         content = ""
         content += f"\033[01;34m{metadata['family']}\033[0m\n"
         content += "------------\n"
         content += f"\033[34mVersion\033[0m   : {metadata['version']}\n"
         content += f"\033[34mCategory\033[0m  : {metadata['category']}\n"
-        content += f"\033[34mSubsets\033[0m   : {', '.join(metadata['subsets'])}\n"
-        content += f"\033[34mVariants\033[0m  : {', '.join(metadata['variants'])}\n"
-        content += f"\033[34mAxes\033[0m      : {', '.join(axes) if axes else 'None'}\n"
-        content += f"\033[34mDesigners\033[0m : {', '.join(metadata['designers'])}\n"
-        content += f"\033[34mLicense\033[0m   : {LICENSES[metadata['license']][0]}"
+        content += utils.split_long_text(f"\033[34mSubsets\033[0m   : {', '.join(metadata['subsets'])}\n", max_length, ", ", line_breaker)
+        content += utils.split_long_text(f"\033[34mVariants\033[0m  : {', '.join(metadata['variants'])}\n", max_length, ", ", line_breaker)
+        content += utils.split_long_text(f"\033[34mAxes\033[0m      : {', '.join(axes) if axes else 'None'}\n", max_length, ", ", line_breaker)
+        content += utils.split_long_text(f"\033[34mDesigners\033[0m : {', '.join(metadata['designers'])}\n", max_length, ", ", line_breaker)
+        content += utils.split_long_text(f"\033[34mLicense\033[0m   : {LICENSES[metadata['license']][0]}", max_length, ", ", line_breaker)
 
     return content
 
