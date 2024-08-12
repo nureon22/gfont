@@ -49,6 +49,7 @@ def get_families(refresh: bool = False) -> List[str]:
     if refresh:
         print("Refreshing families metadata", end="\033[K\r")
 
+        utils.need_internet_connection()
         res = request("GET", url, timeout=REQUEST_TIMEOUT)
         res.raise_for_status()
 
@@ -100,6 +101,7 @@ def get_metadata(family: str, need_extra: bool):
             ]
 
         else:
+            utils.need_internet_connection()
             url = f"https://fonts.google.com/metadata/fonts/{family}"
             res = request("GET", url, timeout=REQUEST_TIMEOUT)
             res.raise_for_status()
@@ -132,6 +134,8 @@ def get_webfonts_css(family: str, woff2: bool, styles: str = "", **parameters: O
     for [parameter, value] in parameters.items():
         if parameter in supported_parameters and value:
             url = url + f"&{parameter}={urllib.parse.quote(value)}"
+
+    utils.need_internet_connection()
 
     # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
     headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
@@ -274,6 +278,7 @@ def download_fonts(family: str, fonts: List[Dict], dir: str, nocache: bool = Fal
         res.raise_for_status()
         utils.write_bytes_file(filepath, res.content)
 
+    utils.need_internet_connection()
     utils.thread_pool_loop(_download, fonts)
 
 
@@ -364,4 +369,3 @@ def pack_webfonts(family: str, dir: str, clean: bool, styles: str = "", **parame
     utils.write_file(f"{dir}/{family_kebab}.css", webfonts_css)
 
     print(f"Packing '{family}' webfonts finished.")
-

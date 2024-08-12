@@ -1,5 +1,6 @@
 import os
 import random
+import socket
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -18,7 +19,32 @@ LOG_COLORS = {
     "RESET": "\033[0m",
 }
 
-generated_unique_name = []
+__generated_unique_name = []
+__is_online: None | bool = None
+
+
+def check_internet_connection(host, port):
+    global __is_online
+
+    if __is_online is not None:
+        return __is_online
+
+    try:
+        sock = socket.create_connection((host, port), 5)
+        sock.close()
+        __is_online = True
+        return __is_online
+    except OSError:
+        pass
+
+    __is_online = False
+    return __is_online
+
+
+def need_internet_connection():
+    if not check_internet_connection("8.8.8.8", 53):
+        log("ERROR", "No Internet Connection")
+        sys.exit(1)
 
 
 def isinstance_check(value, instance, message):
@@ -150,10 +176,10 @@ def unique_name():
     chars = "abcdefghijklmnopqrstuvwxyz"
     result = "".join([random.choice(chars) for _i in range(16)])
 
-    if result in generated_unique_name:
+    if result in __generated_unique_name:
         return unique_name()
     else:
-        generated_unique_name.append(result)
+        __generated_unique_name.append(result)
         return result
 
 
