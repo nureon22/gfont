@@ -134,7 +134,7 @@ class GFontPluginBase(ABC):
 
             print("Removing '{}' finished".format(family))
 
-    def resolve_family(self, family: str, exact: bool = False) -> str:
+    def resolve_family(self, family: str, doExit: bool = True) -> str | None:
         """
         Resolve the family name that contains (case-insensitive, underscore) to valid one
         """
@@ -150,8 +150,11 @@ class GFontPluginBase(ABC):
             if x.lower() == family:
                 return x
 
-        utils.log("Error", f"Family '{_family}' cannot be found")
-        sys.exit(1)
+        if doExit:
+            utils.log("Error", f"Family '{_family}' cannot be found")
+            sys.exit(1)
+        else:
+            return None
 
     def search_families(self, keywords: List[str], exact: bool = False) -> List[str]:
         """
