@@ -6,7 +6,7 @@ import sys
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from requests import request
 
@@ -44,7 +44,7 @@ class GFontPluginBase(ABC):
         metadata = self.get_metadata(family, True)
 
         max_length = os.get_terminal_size().columns
-        line_breaker = "\n" + " " * 12
+        line_breaker = "\n            "
         axes = [f"@{x['tag']}={x['min']}>{x['max']}" for x in metadata["axes"]]
 
         content = ""
@@ -209,3 +209,25 @@ class GFontPluginBase(ABC):
 
         utils.need_internet_connection()
         utils.thread_pool_loop(_download, fonts)
+
+    def pack_webfonts(self, family: str, dir: str, clean: bool, styles: str = "", **parameters: Optional[str]):
+        """Pack a font family to use in websites as self-hosted fonts"""
+
+        family = self.resolve_family(family)
+        family_kebab = utils.kebab_case(family)
+
+        webfonts_css = self.get_webfonts_css(family, True, styles, **parameters)
+        subdir = os.path.join(dir, family_kebab)
+
+        fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
+        fonts = [{"url": font, "filename": f"{utils.unique_name()}.woff2"} for font in fonts]
+
+        if clean:
+            utils.empty_directory(subdir)
+        self.download_fonts(family, fonts, subdir, True)
+
+        for font in fonts:
+            webfonts_css = webfonts_css.replace(font["url"], f"{family_kebab}/" + font["filename"])
+        utils.write_file(f"{dir}/{family_kebab}.css", webfonts_css)
+
+        print(f"Packing '{family}' webfonts finished.")

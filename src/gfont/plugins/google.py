@@ -1,11 +1,12 @@
 import json
 import os
-from typing import Dict, List
+from typing import Dict, List, Optional
+from urllib.parse import quote as urlquote
 
 from requests import request
 
 from .. import utils
-from ..constants import CACHE_DIR, REQUEST_TIMEOUT
+from ..constants import BROWSER_USER_AGENT, CACHE_DIR, REQUEST_TIMEOUT
 from .base import GFontPluginBase
 
 
@@ -102,3 +103,26 @@ class GFontPluginGoogle(GFontPluginBase):
             utils.write_file(os.path.join(CACHE_DIR, self.plugin_id()) + ".json", json.dumps(self.__families_metadata, indent=4))
 
         return metadata
+
+    def get_webfonts_css(self, family: str, woff2: bool, styles: str = "", **parameters: Optional[str]) -> str:
+        """Return CSS content of a font family"""
+
+        api_version = "css2" if "@" in styles else "css"
+        url = f"https://fonts.googleapis.com/{api_version}?family=" + family.replace(" ", "+")
+        supported_parameters = ["display", "text"]
+
+        if styles:
+            url = url + ":" + styles
+
+        for [parameter, value] in parameters.items():
+            if parameter in supported_parameters and value:
+                url = url + f"&{parameter}={urlquote(value)}"
+
+        utils.need_internet_connection()
+
+        # User-Agent is specified to make sure woff2 fonts are returned instead of ttf fonts
+        headers = {"User-Agent": BROWSER_USER_AGENT} if woff2 else {}
+        res = request("GET", url, headers=headers, timeout=REQUEST_TIMEOUT)
+        res.raise_for_status()
+
+        return f"/* original-url: {url} */\n\n{res.text}"
