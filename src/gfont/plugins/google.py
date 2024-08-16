@@ -16,20 +16,20 @@ class GFontPluginGoogle(GFontPluginBase):
     def __init__(self):
         super().__init__()
 
-        self.API_KEY = os.getenv("GOOGLE_FONTS_API_KEY")
-
     def plugin_id(self):
         return "GOOGLE"
 
     def get_families(self, refresh: bool = False):
-        if self.API_KEY:
-            url = "https://www.googleapis.com/webfonts/v1/webfonts?key=" + self.API_KEY
-        else:
-            url = "https://raw.githubusercontent.com/nureon22/gfont/main/data/webfonts.json"
-
         cache_file = os.path.join(CACHE_DIR, self.plugin_id()) + ".json"
 
         if refresh:
+            API_KEY = os.getenv("GOOGLE_FONTS_API_KEY")
+
+            if API_KEY:
+                url = "https://www.googleapis.com/webfonts/v1/webfonts?key=" + self.API_KEY
+            else:
+                url = "https://raw.githubusercontent.com/nureon22/gfont/main/data/webfonts.json"
+
             utils.need_internet_connection()
             print("Rrefreshing families metadata", end="\033[K\r")
 
@@ -47,7 +47,10 @@ class GFontPluginGoogle(GFontPluginBase):
 
             print("", end="\033[K\r")
         else:
-            if os.path.isfile(cache_file) and not self.__families_metadata and not self.__families:
+            if self.__families:
+                return self.__families
+
+            elif os.path.isfile(cache_file):
                 cached_content = utils.read_file(cache_file)
 
                 if cached_content:
