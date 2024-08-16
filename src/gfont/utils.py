@@ -191,3 +191,7 @@ def empty_directory(dir: str):
         filepath = os.path.join(dir, filename)
         if os.path.isfile(filepath):
             os.remove(filepath)
+
+
+def format_families_by_plugin(plugin_id, families):
+    return ["{} - {}".format(plugin_id, family) for family in families]
