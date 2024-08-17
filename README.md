@@ -45,6 +45,10 @@ pip install "git+https://github.com/nureon22/gfont.git"
 pipx install "git+https://github.com/nureon22/gfont.git"
 ```
 
+### For ArchLinux
+
+For ArchLinux [gfont](https://aur.archlinux.org/packages/gfont) package is available in AUR
+
 ### Requirements
 
 - python 3.8 or newer
