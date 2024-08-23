@@ -1,9 +1,8 @@
 # Browse and install google fonts using terminal
 
-⚠️ **Warning:** this project is still in development and doesn't support the Windows yet
+**Note:** If you encounter some errors after upgrade, clean cache files described at the end of the page.
 
-**Note:** If you encounter some errors, clean cache files described at the end of the page.
-
+- [Supported Platforms](#supported-platforms)
 - [Google Fonts API](#google-fonts-api)
 - [Installation](#installation)
   - [Using pip](#using-pip)
@@ -22,6 +21,10 @@
   - [Tricks](#tricks)
   - [For mor information](#for-mor-information)
 - [Related directories](#related-directories)
+
+## Supported platforms
+- Linux
+- MacOS
 
 ## Google Fonts API
 
