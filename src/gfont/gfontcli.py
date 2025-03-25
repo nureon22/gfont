@@ -1,4 +1,5 @@
 import argparse
+import os
 
 from . import gfontlibs as libs
 from . import utils
@@ -26,6 +27,13 @@ def list_command(args):
             print("No installed font families")
         else:
             print("\n".join(installed_families))
+
+
+def download_command(args):
+    for family in args.family:
+        family = libs.resolve_family(family, True)
+        print(f"  Downloading: \033[34m{family}\033[0m")
+        libs.download_fonts(family, libs.get_font_files(family), os.path.join(args.dir, family.replace(" ", "_")), True)
 
 
 def install_command(args):
@@ -92,6 +100,9 @@ helps = {
     "install__yes": "assume 'yes' as answer to all prompts and run non-interactively",
     "install__no_cache": "download the font again, even it is already downloaded",
     "install__family": "name of the font family (case-insensitive)",
+    "download__help": "download one or more font families into a directory",
+    "download__dir": "directory to place the downloaded font files, default to current directory",
+    "download__family": "name of the font family (case-insensitive)",
     "remove__help": "remove one or more font families",
     "remove__yes": "assume 'yes' as answer to all prompts and run non-interactively",
     "remove__family": "name of the font family (case-insensitive)",
@@ -128,6 +139,12 @@ def main():
     list_parser = subparsers.add_parser("list", help=helps["list__help"])
     list_parser.add_argument("--all", action="store_true", help=helps["list__all"])
     list_parser.set_defaults(func=list_command)
+
+    # download sub-command
+    download_parser = subparsers.add_parser("download", help=helps["download__help"])
+    download_parser.add_argument("--dir", required=False, default=".", help=helps["download__dir"])
+    download_parser.add_argument("family", nargs="+", help=helps["download__family"])
+    download_parser.set_defaults(func=download_command)
 
     # install sub-command
     install_parser = subparsers.add_parser("install", help=helps["install__help"])

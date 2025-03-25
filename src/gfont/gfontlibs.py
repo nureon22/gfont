@@ -282,6 +282,25 @@ def download_fonts(family: str, fonts: List[Dict], dir: str, nocache: bool = Fal
     utils.thread_pool_loop(_download, fonts)
 
 
+def get_font_files(family: str) -> List[Dict[str, str]]:
+    """Get available font files of a family"""
+
+    utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
+
+    family = resolve_family(family)
+    fonts: List[Dict[str, str]] = []
+
+    for [variant, url] in get_metadata(family, False)["files"].items():
+        fonts.append(
+            {
+                "filename": f'{family.replace(" ", "_")}-{utils.resolve_variant(variant, False)}.{os.path.splitext(url)[1]}',
+                "url": url
+            }
+        )
+
+    return fonts
+
+
 def install_family(family: str, nocache: bool = False):
     """Download complete set of given font family"""
 
