@@ -32,7 +32,6 @@ def list_command(args):
 def download_command(args):
     for family in args.family:
         family = libs.resolve_family(family, True)
-        print(f"  Downloading: \033[34m{family}\033[0m")
         libs.download_fonts(family, libs.get_font_files(family), os.path.join(args.dir, family.replace(" ", "_")), True)
 
 
