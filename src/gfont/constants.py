@@ -17,7 +17,7 @@ CACHE_FILE = os.path.join(CACHE_DIR, "families.json")
 REQUEST_TIMEOUT = 10
 MAX_WORKERS = 4
 BROWSER_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-VERSION = "0.14.3"
+VERSION = "0.15.0"
 
 FONT_VARIANT_STANDARD_NAMES = {
     "100": "Thin",
