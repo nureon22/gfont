@@ -293,7 +293,7 @@ def get_font_files(family: str) -> List[Dict[str, str]]:
     for [variant, url] in get_metadata(family, False)["files"].items():
         fonts.append(
             {
-                "filename": f'{family.replace(" ", "_")}-{utils.resolve_variant(variant, False)}.{os.path.splitext(url)[1]}',
+                "filename": f'{family.replace(" ", "_")}-{utils.resolve_variant(variant, False)}{os.path.splitext(url)[1]}',
                 "url": url
             }
         )
