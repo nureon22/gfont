@@ -269,7 +269,7 @@ def download_fonts(family: str, fonts: List[Dict], dir: str, nocache: bool = Fal
         filepath = os.path.join(dir, font["filename"])
         current = str(fonts.index(font) + 1).rjust(total_width, "0")
 
-        print(f"Downloading '{family}' ({current}/{total})", end="\033[K\r")
+        print(f"Downloading '\033[01m{family}\033[00m' ({current}/{total})", end="\033[K\r")
 
         if os.path.isfile(filepath) and not nocache:
             return
