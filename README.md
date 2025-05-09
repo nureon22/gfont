@@ -7,6 +7,7 @@
 - [Installation](#installation)
   - [Using pip](#using-pip)
   - [Using pipx](#using-pipx)
+  - [Using zipapp](#using-zipapp)
   - [Requirements](#requirements)
     - [Runtime Dependencies](#runtime-dependencies)
     - [Development Dependencies](#development-dependencies)
@@ -47,6 +48,14 @@ pip install "git+https://github.com/nureon22/gfont.git"
 ```sh
 pipx install "git+https://github.com/nureon22/gfont.git"
 ```
+
+### Using zipapp
+
+- Download **gfont.pyz** from [Release Page](https://github.com/nureon22/gfont/releases/latest)
+- Give gfont.pyz executable permission. `chmod +x gfont.pyz`
+- Copy gfont.pyz to your PATH and you're ready to go
+
+**Notes:** To get the new version, you need to follow the steps above again if you're using this method.
 
 ### For ArchLinux
 
