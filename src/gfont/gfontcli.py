@@ -79,11 +79,11 @@ def webfont_command(args):
         if ":" in family:
             [family, styles] = family.split(":")
             libs.pack_webfonts(
-                libs.resolve_family(family), args.dir, bool(args.clean), styles, display=args.display, text=args.text
+                libs.resolve_family(family), not args.nowoff, args.dir, bool(args.clean), styles, display=args.display, text=args.text
             )
         else:
             libs.pack_webfonts(
-                libs.resolve_family(family), args.dir, bool(args.clean), display=args.display, text=args.text
+                libs.resolve_family(family), not args.nowoff, args.dir, bool(args.clean), display=args.display, text=args.text
             )
 
 
@@ -109,6 +109,7 @@ helps = {
     "update__yes": "assume 'yes' as answer to all prompts and run non-interactively",
     "webfont__help": "pack a font family to use in websites",
     "webfont__dir": "directory to place the packed webfonts",
+    "webfont__nowoff": "Use OTF or TTF fonts instead of woff fonts",
     "webfont__clean": "clean previous generated font files",
     "webfont__display": "font-display property of the font family",
     "webfont__text": "Reduce bandwidth by specific text",
@@ -166,6 +167,7 @@ def main():
     # webfont sub-command
     webfont_parser = subparsers.add_parser("webfont", help=helps["webfont__help"])
     webfont_parser.add_argument("--dir", required=True, help=helps["webfont__dir"])
+    webfont_parser.add_argument("--nowoff", action="store_true", help=helps["webfont__nowoff"])
     webfont_parser.add_argument("--clean", action="store_true", help=helps["webfont__clean"])
     webfont_parser.add_argument("--no-cache", action="store_true", help=helps["webfont__no_cache"])
     webfont_parser.add_argument("--display", help=helps["webfont__display"])

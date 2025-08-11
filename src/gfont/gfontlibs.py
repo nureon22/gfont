@@ -362,7 +362,7 @@ def get_available_updates() -> List[str]:
     return families
 
 
-def pack_webfonts(family: str, dir: str, clean: bool, styles: str = "", **parameters: Optional[str]):
+def pack_webfonts(family: str, woff: bool, dir: str, clean: bool, styles: str = "", **parameters: Optional[str]):
     """Pack a font family to use in websites as self-hosted fonts"""
 
     utils.isinstance_check(family, str, "First argument 'family' must be 'str'")
@@ -373,7 +373,7 @@ def pack_webfonts(family: str, dir: str, clean: bool, styles: str = "", **parame
     family = resolve_family(family)
     family_kebab = utils.kebab_case(family)
 
-    webfonts_css = get_webfonts_css(family, True, styles, **parameters)
+    webfonts_css = get_webfonts_css(family, woff, styles, **parameters)
     subdir = os.path.join(dir, family_kebab)
 
     fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
