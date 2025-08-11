@@ -377,7 +377,7 @@ def pack_webfonts(family: str, woff: bool, dir: str, clean: bool, styles: str = 
     subdir = os.path.join(dir, family_kebab)
 
     fonts = list(set(re.findall(r"url\(([^\)]+)\)", webfonts_css)))
-    fonts = [{"url": font, "filename": f"{utils.unique_name()}.woff2"} for font in fonts]
+    fonts = [{"url": font, "filename": f"{utils.unique_name()}.{font.split('.')[-1]}"} for font in fonts]
 
     if clean:
         utils.empty_directory(subdir)
